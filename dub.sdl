@@ -1,0 +1,5 @@
+name "Denduro"
+description "An Enduro clone made with D."
+copyright "Copyright © 2016 - David G. Maziero"
+authors "David G. Maziero (dgm)"
+dependency "derelict-sdl2" version="~>2.0.0"
