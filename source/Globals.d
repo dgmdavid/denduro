@@ -12,8 +12,10 @@
 module Globals;
 import derelict.sdl2.sdl;
 
+immutable int SCREEN_WIDTH = 160;
+immutable int SCREEN_HEIGHT = 192;
 
 SDL_Renderer *g_renderer;
-
+uint[SCREEN_WIDTH*SCREEN_HEIGHT] g_screen;
 
 //EOF
