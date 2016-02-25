@@ -23,7 +23,8 @@
 import std.stdio, std.conv, std.random;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
-import Globals, FontBMP;
+import Globals, Road;
+debug import FontBMP;
 
 void main()
 {
@@ -33,11 +34,11 @@ void main()
 	SDL_Init( SDL_INIT_VIDEO );
 	IMG_Init( IMG_INIT_PNG );
 
-	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 576, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
+	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
-	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC );
+	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED ); //|SDL_RENDERER_PRESENTVSYNC );
 
-	SDL_Texture *tex_screen = SDL_CreateTexture( g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC/*STREAMING*/, SCREEN_WIDTH, SCREEN_HEIGHT );
+	SDL_Texture *tex_screen = SDL_CreateTexture( g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC/*STREAMING*/, 160, 228 );
 
 	//this is just for displaying debug information
 	debug 
@@ -72,12 +73,10 @@ void main()
 			}
 		}
 
-		//TODO: run the game here
-		for( int r=0; r<SCREEN_WIDTH*SCREEN_HEIGHT; ++r )
-			g_screen[r] = 255<<24 | uniform(0,255)<<16 | uniform(0,255)<<8 | uniform(0,255);
-		
+		RenderRoad();
+
 		SDL_RenderClear( g_renderer );
-		SDL_UpdateTexture( tex_screen, null, cast(void*)g_screen, SCREEN_WIDTH*uint.sizeof );
+		SDL_UpdateTexture( tex_screen, null, cast(void*)g_screen+VSCREEN_X_PAD*uint.sizeof, VSCREEN_WIDTH*uint.sizeof );
 		SDL_RenderCopy( g_renderer, tex_screen, null, null );
 		
 		debug RenderText( font, 0, 0, "FPS: "~to!string(fps) );

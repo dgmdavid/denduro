@@ -12,10 +12,13 @@
 module Globals;
 import derelict.sdl2.sdl;
 
-immutable int SCREEN_WIDTH = 160;
-immutable int SCREEN_HEIGHT = 192;
+immutable SCREEN_WIDTH  = 160;
+immutable SCREEN_HEIGHT = 228;
+immutable VSCREEN_X_PAD = 40;
+immutable VSCREEN_WIDTH = SCREEN_WIDTH+(VSCREEN_X_PAD*2);
+immutable VSCREEN_HEIGHT = SCREEN_HEIGHT;
 
 SDL_Renderer *g_renderer;
-uint[SCREEN_WIDTH*SCREEN_HEIGHT] g_screen;
+uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 
 //EOF

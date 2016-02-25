@@ -13,42 +13,37 @@ module FontBMP;
 import derelict.sdl2.sdl;
 import Globals;
 
-debug 
+struct FontBMP
 {
-	
-	struct FontBMP
-	{
-		SDL_Texture *texture;
-		int horizontal_count;
-		int width, height;
-		int spacing_x, spacing_y;
-	}
+	SDL_Texture *texture;
+	int horizontal_count;
+	int width, height;
+	int spacing_x, spacing_y;
+}
 
-	//RenderText
-	void RenderText( FontBMP font, int x, int y, string text )
+//RenderText
+void RenderText( FontBMP font, int x, int y, string text )
+{
+	if( !g_renderer ) return;
+	SDL_Rect rect1, rect2;
+	rect2.x = x;
+	rect2.y = y;
+	rect2.w = font.width;
+	rect2.h = font.height;
+	rect1.w = font.width;
+	rect1.h = font.height;
+	foreach( char letter; text )
 	{
-		if( !g_renderer ) return;
-		SDL_Rect rect1, rect2;
-		rect2.x = x;
-		rect2.y = y;
-		rect2.w = font.width;
-		rect2.h = font.height;
-		rect1.w = font.width;
-		rect1.h = font.height;
-		foreach( char letter; text )
+		rect1.x = font.width*(letter%font.horizontal_count);
+		rect1.y = font.height*(letter/font.horizontal_count);
+		if( letter>=33 ) SDL_RenderCopy( g_renderer, font.texture, &rect1, &rect2 );
+		rect2.x += font.spacing_x;
+		if( letter==10 ) 
 		{
-			rect1.x = font.width*(letter%font.horizontal_count);
-			rect1.y = font.height*(letter/font.horizontal_count);
-			if( letter>=33 ) SDL_RenderCopy( g_renderer, font.texture, &rect1, &rect2 );
-			rect2.x += font.spacing_x;
-			if( letter==10 ) 
-			{
-				rect2.x = x;
-				rect2.y += font.spacing_y;
-			}
+			rect2.x = x;
+			rect2.y += font.spacing_y;
 		}
 	}
-
 }
 
 //EOF
