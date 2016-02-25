@@ -3,4 +3,7 @@ docs.json
 __dummy.html
 *.o
 *.obj
-sublime_project.*
+*.sublime_project
+*.sublime_workspace
+*.sublime-project
+*.sublime-workspace
