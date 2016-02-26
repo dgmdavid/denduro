@@ -10,12 +10,13 @@
 	No warranty is offered or implied; use this code at your own risk.
 */
 module Road;
-import std.stdio, core.stdc.string, std.random;
+import std.stdio, core.stdc.string, std.random, std.math;
 import Globals;
 
 //lines 72 to 175
-
-int center = (SCREEN_WIDTH/2)+VSCREEN_X_PAD, curve = 0;
+enum screen_center = (SCREEN_WIDTH/2)+VSCREEN_X_PAD;
+int curve = 0;
+float disturb = 72;
 
 void RenderRoad()
 {
@@ -23,20 +24,33 @@ void RenderRoad()
 
 	g_screen[] = 0;
 
+	int center = screen_center-cast(int)(player.position/1.75f);
+
+	disturb+=player.speed;
+
+	if( disturb>190 ) disturb = 72;
+
 	for( int r=72; r<175; ++r )
 	{	
 		g_screen[VSCREEN_WIDTH*r+VSCREEN_X_PAD..(VSCREEN_WIDTH*r+VSCREEN_X_PAD+SCREEN_WIDTH)] = 255<<24 | 255<<16;
-		
+	
+		float save_dist = dist;
+		float diff = r-disturb;
+		if( diff>=-13 && diff<=13 )
+		{
+			float tmp = ((r-72)/75.0f)*(-13.0f+fabs(diff/1.0f));
+			//tmp /=1.3f;
+			if( tmp<-4 ) tmp = -4;
+			dist += tmp;
+		}
+
 		g_screen[cast(int)((VSCREEN_WIDTH*r)+center-dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
 		g_screen[cast(int)((VSCREEN_WIDTH*r)+center+dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
+
+		if( diff>=-13 && diff<=13 ) dist = save_dist;
 		dist+=0.5f;
 	}
 
-	/*
-	for( int y=1; y<VSCREEN_HEIGHT-1; y++ )
-		for( int x=VSCREEN_X_PAD+1; x<VSCREEN_WIDTH-VSCREEN_X_PAD-1; x++ )
-			g_screen[VSCREEN_WIDTH*y+x] = 255<<24 | 255<<16;
-	*/
 }
 
 //EOF

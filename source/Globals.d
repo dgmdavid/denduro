@@ -12,13 +12,20 @@
 module Globals;
 import derelict.sdl2.sdl;
 
-immutable SCREEN_WIDTH  = 160;
-immutable SCREEN_HEIGHT = 228;
-immutable VSCREEN_X_PAD = 40;
-immutable VSCREEN_WIDTH = SCREEN_WIDTH+(VSCREEN_X_PAD*2);
-immutable VSCREEN_HEIGHT = SCREEN_HEIGHT;
+enum SCREEN_WIDTH  = 160;
+enum SCREEN_HEIGHT = 228;
+enum VSCREEN_X_PAD = 40;
+enum VSCREEN_WIDTH = SCREEN_WIDTH+(VSCREEN_X_PAD*2);
+enum VSCREEN_HEIGHT = SCREEN_HEIGHT;
 
 SDL_Renderer *g_renderer;
 uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
+
+struct Player
+{
+	float position = 0, 
+		  speed = 1;
+}
+Player player;
 
 //EOF
