@@ -34,11 +34,11 @@ void main()
 	SDL_Init( SDL_INIT_VIDEO );
 	IMG_Init( IMG_INIT_PNG );
 
-	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
+	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*5), cast(int)(SCREEN_HEIGHT*2.8), SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
 	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED |SDL_RENDERER_PRESENTVSYNC );
 
-	SDL_Texture *tex_screen = SDL_CreateTexture( g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC/*STREAMING*/, 160, 228 );
+	SDL_Texture *tex_screen = SDL_CreateTexture( g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC/*STREAMING*/, SCREEN_WIDTH, SCREEN_HEIGHT );
 
 	//this is just for displaying debug information
 	debug 
