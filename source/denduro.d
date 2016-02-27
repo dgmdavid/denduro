@@ -23,7 +23,7 @@
 import std.stdio, std.conv, std.random;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
-import Globals, Road;
+import Globals, Road, Player;
 debug import FontBMP;
 
 void main()
@@ -36,7 +36,7 @@ void main()
 
 	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*5), cast(int)(SCREEN_HEIGHT*2.8), SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
-	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED |SDL_RENDERER_PRESENTVSYNC );
+	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC );
 
 	SDL_Texture *tex_screen = SDL_CreateTexture( g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC/*STREAMING*/, SCREEN_WIDTH, SCREEN_HEIGHT );
 
@@ -49,13 +49,13 @@ void main()
 
 	SDL_Event event;
 	bool running = true;
-	debug uint frame_count, fps, ticks, acc;
-
+	uint frame_count, fps, ticks, acc, acc_noise;
 	bool player_left=false, player_right=false;
+	byte curve = 0; //TODO: temporary -- remove later
 
 	while( running ) 
 	{ 
-		debug ticks = SDL_GetTicks();
+		ticks = SDL_GetTicks();
 
 		//pool events
 		while( SDL_PollEvent(&event) )
@@ -68,48 +68,78 @@ void main()
 
 				case SDL_KEYDOWN:
 					if( event.key.keysym.sym==SDLK_ESCAPE ) running = false;	
-					if( event.key.keysym.scancode==SDL_SCANCODE_UP ) player.speed+=0.25f;
-					if( event.key.keysym.scancode==SDL_SCANCODE_DOWN ) player.speed-=0.25f;
-					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT  ) player_left = true;
-					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ) player_right = true;
+
+					//TODO: temporary
+					if( event.key.keysym.scancode==SDL_SCANCODE_1 ) curve = -1;
+					if( event.key.keysym.scancode==SDL_SCANCODE_2 ) curve = 1;
+					//
+
+					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT ||
+						event.key.keysym.scancode==SDL_SCANCODE_A       ) player.turn_left = true;
+					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ||
+						event.key.keysym.scancode==SDL_SCANCODE_D       ) player.turn_right = true;
+					if( event.key.keysym.scancode==SDL_SCANCODE_SPACE ||
+						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
+						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
+						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = true;
 					break;
 
 				case SDL_KEYUP:
-					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT  ) player_left = false;
-					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ) player_right = false;
+					if( event.key.keysym.scancode==SDL_SCANCODE_1 ||
+						event.key.keysym.scancode==SDL_SCANCODE_2   ) curve = 0;
+
+					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT ||
+						event.key.keysym.scancode==SDL_SCANCODE_A       ) player.turn_left = false;
+					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ||
+						event.key.keysym.scancode==SDL_SCANCODE_D       ) player.turn_right = false;
+					if( event.key.keysym.scancode==SDL_SCANCODE_SPACE ||
+						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
+						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
+						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = false;
 					break;
+
 
 				default:
 					break;
 			}
 		}
 
-		if( player_left ) player.position--;
-		if( player_right ) player.position++;
+		//TODO: temporary
+		if( curve==-1 ) road.curve += 1;
+		if( curve== 1 ) road.curve -= 1;				
+		//
 
+		UpdatePlayer();
 		RenderRoad();
 
-		SDL_RenderClear( g_renderer );
+		//SDL_RenderClear( g_renderer ); //TODO: really needed?
 		SDL_UpdateTexture( tex_screen, null, cast(void*)g_screen+VSCREEN_X_PAD*uint.sizeof, VSCREEN_WIDTH*uint.sizeof );
 		SDL_RenderCopy( g_renderer, tex_screen, null, null );
-		
-		debug RenderText( font, 0, 0, "FPS: "~to!string(fps) );
-		debug RenderText( font, 0, 20, "P: "~to!string(player.position)~" - "~to!string(player.speed) );
+
+		debug
+		{
+			RenderText( font, 0, 0, "FPS: "~to!string(fps) );
+			RenderText( font, 0, 16, "Player: pos:"~to!string(player.position)~" - speed:"~to!string(player.speed) );
+			RenderText( font, 0, 32, "Road: curve:"~to!string(road.curve) );
+		}
 
 		SDL_RenderPresent( g_renderer );
 		
-		debug 
+		frame_count++;
+		ticks = SDL_GetTicks()-ticks;
+		acc += ticks;
+		if( acc>1000 ) 
 		{
-			frame_count++;
-
-			ticks = SDL_GetTicks()-ticks;
-			acc += ticks;
-			if( acc>1000 ) 
-			{
-				acc -= 1000;
-				fps = frame_count;
-				frame_count = 0;
-			}
+			acc -= 1000;
+			fps = frame_count;
+			frame_count = 0;
+		}
+		//TODO: manually limit frame rate to 60 fps?
+		acc_noise += ticks;
+		if( acc_noise>100 )
+		{
+			acc_noise -= 100;
+			road.noise = uniform( 0, 40 )/100.0f;
 		}
 	}
 

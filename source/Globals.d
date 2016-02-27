@@ -21,11 +21,4 @@ enum VSCREEN_HEIGHT = SCREEN_HEIGHT;
 SDL_Renderer *g_renderer;
 uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 
-struct Player
-{
-	float position = 0, 
-		  speed = 1;
-}
-Player player;
-
 //EOF
