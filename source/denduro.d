@@ -34,7 +34,7 @@ void main()
 	SDL_Init( SDL_INIT_VIDEO );
 	IMG_Init( IMG_INIT_PNG );
 
-	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*5), cast(int)(SCREEN_HEIGHT*2.8), SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
+	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*4), (SCREEN_HEIGHT*2), SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
 	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC );
 
@@ -82,6 +82,8 @@ void main()
 						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
 						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
 						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = true;
+					if( event.key.keysym.scancode==SDL_SCANCODE_DOWN ||
+						event.key.keysym.scancode==SDL_SCANCODE_S       ) player.deaccelerate = true;
 					break;
 
 				case SDL_KEYUP:
@@ -96,6 +98,8 @@ void main()
 						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
 						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
 						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = false;
+					if( event.key.keysym.scancode==SDL_SCANCODE_DOWN ||
+						event.key.keysym.scancode==SDL_SCANCODE_S       ) player.deaccelerate = false;
 					break;
 
 
@@ -105,8 +109,16 @@ void main()
 		}
 
 		//TODO: temporary
-		if( curve==-1 ) road.curve += 1;
-		if( curve== 1 ) road.curve -= 1;				
+		if( curve==-1 )
+		{
+			road.curve += 4;
+			Clamp( road.curve, road_max_curve );
+		}
+		if( curve== 1 )
+		{
+			road.curve -= 4;
+			Clamp( road.curve, -road_max_curve );
+		}
 		//
 
 		UpdatePlayer();

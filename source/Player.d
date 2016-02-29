@@ -10,7 +10,11 @@
 	No warranty is offered or implied; use this code at your own risk.
 */
 module Player;
-import Sprites;
+import Globals, Sprites;
+
+//TODO: should this be moved to globals?
+enum player_max_speed = 5.0f;
+enum player_max_position = 30;
 
 struct Player
 {
@@ -19,7 +23,8 @@ struct Player
 
 	bool turn_left = false,
 		 turn_right = false, 
-		 accelerate = false;
+		 accelerate = false,
+		 deaccelerate = false;
 }
 Player player;
 
@@ -53,9 +58,28 @@ Sprite[2] player_sprite = [
 //UpdatePlayer
 void UpdatePlayer()
 {
-	if( player.turn_left  ) player.position--;
-	if( player.turn_right ) player.position++;
-	if( player.accelerate ) player.speed+=0.025f;	//TODO: adjust at what rate the speed increases and the maximum value
+	if( player.turn_left )
+	{
+		player.position--;
+		Clamp( player.position, -player_max_position );
+	}
+	if( player.turn_right )
+	{
+		player.position++;
+		Clamp( player.position, player_max_position );
+	}
+
+	if( player.accelerate ) 
+	{
+		//TODO: adjust at what rate the speed increases and the maximum value
+		player.speed += 0.025f;	
+		Clamp( player.speed, player_max_speed );
+	}
+	if( player.deaccelerate )
+	{
+		player.speed -= 0.05f;
+		Clamp( player.speed, -0.0f );
+	}
 }
 
 //EOF
