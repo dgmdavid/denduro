@@ -121,13 +121,18 @@ void RenderRoad()
 
 	//collide with the road
 	//TODO: handle speed loss, and "enemy cars" overtaking the player in case of colision
-	if( player_center-7<=left_road )
+	if( player.collision==EPCol.NONE )
 	{
-		player.position += abs( player_center-8-left_road );
-	}
-	if( player_center+7>=right_road )
-	{
-		player.position -= abs( player_center+7-right_road );
+		if( player_center-7<=left_road )
+		{
+			//player.position += abs( player_center-8-left_road );
+			PlayerCollide( EPCol.LEFT );
+		}
+		if( player_center+7>=right_road )
+		{
+			//player.position -= abs( player_center+7-right_road );
+			PlayerCollide( EPCol.RIGHT );
+		}
 	}
 
 	//TODO: obstacle cars

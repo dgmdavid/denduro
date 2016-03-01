@@ -22,9 +22,8 @@ struct FontBMP
 }
 
 //RenderText
-void RenderText( FontBMP font, int x, int y, string text )
+void RenderText( FontBMP font, int x, int y, const char* text )
 {
-	if( !g_renderer ) return;
 	SDL_Rect rect1, rect2;
 	rect2.x = x;
 	rect2.y = y;
@@ -32,8 +31,10 @@ void RenderText( FontBMP font, int x, int y, string text )
 	rect2.h = font.height;
 	rect1.w = font.width;
 	rect1.h = font.height;
-	foreach( char letter; text )
+
+	for( int r=0; text[r]!='\0'; ++r )
 	{
+		char letter = text[r];
 		rect1.x = font.width*(letter%font.horizontal_count);
 		rect1.y = font.height*(letter/font.horizontal_count);
 		if( letter>=33 ) SDL_RenderCopy( g_renderer, font.texture, &rect1, &rect2 );

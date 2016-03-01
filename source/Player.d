@@ -21,12 +21,20 @@ struct Player
 	float position = 0, 
 		  speed = 0;
 
+	EPCol collision;
+	float pos;
+
 	bool turn_left = false,
 		 turn_right = false, 
 		 accelerate = false,
 		 deaccelerate = false;
 }
 Player player;
+
+enum EPCol
+{
+	NONE, LEFT, RIGHT, LEFT_CAR, RIGHT_CAR
+}
 
 //player sprites
 Sprite[2] player_sprite = [ 
@@ -55,30 +63,47 @@ Sprite[2] player_sprite = [
 				1,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0	] }
 	];
 
-//UpdatePlayer
-void UpdatePlayer()
+//PlayerUpdate
+void PlayerUpdate()
 {
-	if( player.turn_left )
+	if( player.collision==EPCol.NONE )
 	{
-		player.position--;
-		Clamp( player.position, -player_max_position );
-	}
-	if( player.turn_right )
-	{
-		player.position++;
-		Clamp( player.position, player_max_position );
-	}
-
-	if( player.accelerate ) 
-	{
+		if( player.turn_left  ) Decrease( player.position, 1, -player_max_position );
+		if( player.turn_right ) Increase( player.position, 1, player_max_position );
 		//TODO: adjust at what rate the speed increases and the maximum value
-		player.speed += 0.025f;	
-		Clamp( player.speed, player_max_speed );
-	}
-	if( player.deaccelerate )
+		if( player.accelerate   ) Increase( player.speed, 0.025f, player_max_speed );
+		if( player.deaccelerate ) Decrease( player.speed, 0.05f, 0.1f );
+	} else
+
+	if( player.collision==EPCol.LEFT || player.collision==EPCol.RIGHT )
 	{
-		player.speed -= 0.05f;
-		Clamp( player.speed, -0.0f );
+		if( player.collision==EPCol.LEFT  ) player.position += 0.3f;
+		if( player.collision==EPCol.RIGHT ) player.position -= 0.3f;
+		Decrease( player.pos, 0.3f, 0 );
+		Decrease( player.speed, 0.04f, 0.5f );
+		if( player.pos<=float.epsilon ) player.collision = EPCol.NONE;
+	}
+}
+
+//PlayerCollide
+void PlayerCollide( EPCol type )
+{
+	final switch( type )
+	{
+		case EPCol.NONE:
+			break;
+
+		case EPCol.LEFT:
+		case EPCol.RIGHT:
+		{
+			player.collision = type;
+			player.pos = 10;
+		} break;
+		
+		case EPCol.LEFT_CAR:
+		case EPCol.RIGHT_CAR:
+		{
+		} break;
 	}
 }
 

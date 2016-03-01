@@ -21,16 +21,18 @@ enum VSCREEN_HEIGHT = SCREEN_HEIGHT;
 SDL_Renderer *g_renderer;
 uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 
-//Clamp
-pragma( inline, true )
-void Clamp(T)( ref T value, T max )
+//Increase
+void Increase(T)( ref T value, T amount, T max )
 {
-	if( max>0 )
-	{
-		if( value>max ) value = max;
-	} else {
-		if( value<max ) value = max;
-	}
+	value += amount;
+	if( value>max ) value = max;
+}
+
+//Decrease
+void Decrease(T)( ref T value, T amount, T min )
+{
+	value -= amount;
+	if( value<min ) value = min;
 }
 
 //EOF

@@ -109,19 +109,11 @@ void main()
 		}
 
 		//TODO: temporary
-		if( curve==-1 )
-		{
-			road.curve += 4;
-			Clamp( road.curve, road_max_curve );
-		}
-		if( curve== 1 )
-		{
-			road.curve -= 4;
-			Clamp( road.curve, -road_max_curve );
-		}
+		if( curve==-1 )	Increase( road.curve, 5, road_max_curve );
+		if( curve== 1 ) Decrease( road.curve, 5, -road_max_curve );
 		//
 
-		UpdatePlayer();
+		PlayerUpdate();
 		RenderRoad();
 
 		//SDL_RenderClear( g_renderer ); //TODO: really needed?
@@ -130,9 +122,14 @@ void main()
 
 		debug
 		{
-			RenderText( font, 0, 0, "FPS: "~to!string(fps) );
-			RenderText( font, 0, 16, "Player: pos:"~to!string(player.position)~" - speed:"~to!string(player.speed) );
-			RenderText( font, 0, 32, "Road: curve:"~to!string(road.curve) );
+			//TODO: could this be uglier to use "non-gc" strings? :(
+			char[256] text;
+			sprintf( &text[0], "FPS: %d", fps );
+			RenderText( font, 0, 0, cast(char*)&text );
+			sprintf( &text[0], "Player: pos:%.3f - speed:%.3f", player.position, player.speed );
+			RenderText( font, 0, 16, cast(char*)text );
+			sprintf( &text[0], "Road: curve:%.3f", road.curve );
+			RenderText( font, 0, 32, cast(char*)text );
 		}
 
 		SDL_RenderPresent( g_renderer );
