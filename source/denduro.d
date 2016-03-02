@@ -122,14 +122,9 @@ void main()
 
 		debug
 		{
-			//TODO: could this be uglier to use "non-gc" strings? :(
-			char[256] text;
-			sprintf( &text[0], "FPS: %d", fps );
-			RenderText( font, 0, 0, cast(char*)&text );
-			sprintf( &text[0], "Player: pos:%.3f - speed:%.3f", player.position, player.speed );
-			RenderText( font, 0, 16, cast(char*)text );
-			sprintf( &text[0], "Road: curve:%.3f", road.curve );
-			RenderText( font, 0, 32, cast(char*)text );
+			RenderText( font, 0, 0, "FPS: %d", fps );
+			RenderText( font, 0, 16, "Player: pos:%.3f - speed:%.3f", player.position, player.speed );
+			RenderText( font, 0, 32, "Road: curve:%.3f", road.curve );
 		}
 
 		SDL_RenderPresent( g_renderer );

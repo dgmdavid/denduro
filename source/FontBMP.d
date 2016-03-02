@@ -10,6 +10,7 @@
 	No warranty is offered or implied; use this code at your own risk.
 */
 module FontBMP;
+import std.stdio, core.stdc.stdarg;
 import derelict.sdl2.sdl;
 import Globals;
 
@@ -22,7 +23,7 @@ struct FontBMP
 }
 
 //RenderText
-void RenderText( FontBMP font, int x, int y, const char* text )
+void RenderText( FontBMP font, int x, int y, const char* text, ... )
 {
 	SDL_Rect rect1, rect2;
 	rect2.x = x;
@@ -32,9 +33,15 @@ void RenderText( FontBMP font, int x, int y, const char* text )
 	rect1.w = font.width;
 	rect1.h = font.height;
 
-	for( int r=0; text[r]!='\0'; ++r )
+	char[256] buff;
+	va_list	ap;
+	va_start( ap, text );
+	vsprintf( buff.ptr, text, ap );
+	va_end( ap );
+
+	for( int r=0; buff[r]!='\0'; ++r )
 	{
-		char letter = text[r];
+		char letter = buff[r];
 		rect1.x = font.width*(letter%font.horizontal_count);
 		rect1.y = font.height*(letter/font.horizontal_count);
 		if( letter>=33 ) SDL_RenderCopy( g_renderer, font.texture, &rect1, &rect2 );
