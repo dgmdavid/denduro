@@ -20,7 +20,7 @@
 
 		Additional info: http://problemkaputt.de/2k6specs.htm
 */
-import std.stdio, std.conv, std.random;
+import std.stdio, std.random;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 import Globals, Road, Player;

@@ -23,7 +23,7 @@ struct FontBMP
 }
 
 //RenderText
-void RenderText( FontBMP font, int x, int y, const char* text, ... )
+extern(C) void RenderText( FontBMP font, int x, int y, const char* text, ... )
 {
 	SDL_Rect rect1, rect2;
 	rect2.x = x;
@@ -36,7 +36,7 @@ void RenderText( FontBMP font, int x, int y, const char* text, ... )
 	char[256] buff;
 	va_list	ap;
 	va_start( ap, text );
-	vsprintf( buff.ptr, text, ap );
+	vsnprintf( buff.ptr, 255, text, ap );
 	va_end( ap );
 
 	for( int r=0; buff[r]!='\0'; ++r )

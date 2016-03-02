@@ -22,6 +22,7 @@ SDL_Renderer *g_renderer;
 uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 
 //Increase
+pragma( inline, true )
 void Increase(T)( ref T value, T amount, T max )
 {
 	value += amount;
@@ -29,6 +30,7 @@ void Increase(T)( ref T value, T amount, T max )
 }
 
 //Decrease
+pragma( inline, true )
 void Decrease(T)( ref T value, T amount, T min )
 {
 	value -= amount;

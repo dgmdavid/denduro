@@ -33,7 +33,7 @@ Road road;
 
 //CalcRoadCurve
 ///line - from 0 to "road_length"
-pragma( inline, true ):
+pragma( inline, true )
 float CalcRoadCurve( int line )	
 {
 	//max curve 176! 176
