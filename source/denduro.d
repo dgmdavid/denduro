@@ -20,10 +20,10 @@
 
 		Additional info: http://problemkaputt.de/2k6specs.htm
 */
-import std.stdio, std.random;
+import std.stdio, std.random, std.math;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
-import Globals, Road, Player;
+import Globals, Road, Player, Enemies;
 debug import FontBMP;
 
 void main()
@@ -49,9 +49,11 @@ void main()
 
 	SDL_Event event;
 	bool running = true;
-	uint frame_count, fps, ticks, acc, acc_noise;
+	uint frame_count, fps, ticks, last_frame_time, acc, acc_noise;
 	bool player_left=false, player_right=false;
 	byte curve = 0; //TODO: temporary -- remove later
+
+	InitEnemies();
 
 	while( running ) 
 	{ 
@@ -67,53 +69,70 @@ void main()
 					break;
 
 				case SDL_KEYDOWN:
-					if( event.key.keysym.sym==SDLK_ESCAPE ) running = false;	
-
-					//TODO: temporary
-					if( event.key.keysym.scancode==SDL_SCANCODE_1 ) curve = -1;
-					if( event.key.keysym.scancode==SDL_SCANCODE_2 ) curve = 1;
-					//
-
-					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT ||
-						event.key.keysym.scancode==SDL_SCANCODE_A       ) player.turn_left = true;
-					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ||
-						event.key.keysym.scancode==SDL_SCANCODE_D       ) player.turn_right = true;
-					if( event.key.keysym.scancode==SDL_SCANCODE_SPACE ||
-						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
-						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
-						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = true;
-					if( event.key.keysym.scancode==SDL_SCANCODE_DOWN ||
-						event.key.keysym.scancode==SDL_SCANCODE_S       ) player.deaccelerate = true;
-					break;
+				{
+					auto k = event.key.keysym.scancode;
+					if( k==SDL_SCANCODE_ESCAPE ) running = false;	
+					if( k==SDL_SCANCODE_1 ) curve = -1;	//TODO: remove later
+					if( k==SDL_SCANCODE_2 ) curve = 1;
+					if( k==SDL_SCANCODE_LEFT  || k==SDL_SCANCODE_A ) player.turn_left = true;
+					if( k==SDL_SCANCODE_RIGHT || k==SDL_SCANCODE_D ) player.turn_right = true;
+					if( k==SDL_SCANCODE_DOWN  || k==SDL_SCANCODE_S ) player.deaccelerate = true;
+					if( k==SDL_SCANCODE_SPACE || k==SDL_SCANCODE_RCTRL || k==SDL_SCANCODE_UP || k==SDL_SCANCODE_W ) player.accelerate = true;
+				} break;
 
 				case SDL_KEYUP:
-					if( event.key.keysym.scancode==SDL_SCANCODE_1 ||
-						event.key.keysym.scancode==SDL_SCANCODE_2   ) curve = 0;
-
-					if( event.key.keysym.scancode==SDL_SCANCODE_LEFT ||
-						event.key.keysym.scancode==SDL_SCANCODE_A       ) player.turn_left = false;
-					if( event.key.keysym.scancode==SDL_SCANCODE_RIGHT ||
-						event.key.keysym.scancode==SDL_SCANCODE_D       ) player.turn_right = false;
-					if( event.key.keysym.scancode==SDL_SCANCODE_SPACE ||
-						event.key.keysym.scancode==SDL_SCANCODE_RCTRL ||
-						event.key.keysym.scancode==SDL_SCANCODE_UP    ||
-						event.key.keysym.scancode==SDL_SCANCODE_W       ) player.accelerate = false;
-					if( event.key.keysym.scancode==SDL_SCANCODE_DOWN ||
-						event.key.keysym.scancode==SDL_SCANCODE_S       ) player.deaccelerate = false;
-					break;
-
+				{
+					auto k = event.key.keysym.scancode;
+					if( k==SDL_SCANCODE_1 || k==SDL_SCANCODE_2   ) curve = 0; //TODO: remove later
+					if( k==SDL_SCANCODE_LEFT  || k==SDL_SCANCODE_A ) player.turn_left = false;
+					if( k==SDL_SCANCODE_RIGHT || k==SDL_SCANCODE_D ) player.turn_right = false;
+					if( k==SDL_SCANCODE_DOWN  || k==SDL_SCANCODE_S ) player.deaccelerate = false;
+					if( k==SDL_SCANCODE_SPACE || k==SDL_SCANCODE_RCTRL || k==SDL_SCANCODE_UP || k==SDL_SCANCODE_W ) player.accelerate = false;
+				} break;
 
 				default:
 					break;
 			}
 		}
 
-		//TODO: temporary
-		if( curve==-1 )	Increase( road.curve, 5, road_max_curve );
-		if( curve== 1 ) Decrease( road.curve, 5, -road_max_curve );
+		//TODO: temporary ugly stuff, remove later
+		if( curve==-1 )	Increase( road.curve, cast(int)ceil(player.speed), ROAD_MAX_CURVE );
+		if( curve== 1 ) Decrease( road.curve, cast(int)ceil(player.speed), -ROAD_MAX_CURVE );
+		if( curve== 0 ) 
+		{
+			if( road.curve>0 )  
+				Decrease( road.curve, cast(int)ceil(player.speed), 0 );
+			else
+				Increase( road.curve, cast(int)ceil(player.speed), 0 );
+		}
+
+		static float road_timer = 0.0f;
+		road_timer += last_frame_time;
+		if( road_timer>2000 )
+		{
+			road_timer -= 2000;
+			if( curve==0 || (curve!=0 && ( (road.curve<=-ROAD_MAX_CURVE+2) || (road.curve>=ROAD_MAX_CURVE-2) ) ) )
+			{
+				int decision = uniform( 0, 100 );
+				if( curve==0 )
+				{
+					if( decision<=15 ) curve = -1;
+					if( decision>=85 ) curve =  1;
+				} 
+				else if( curve==-1 )
+				{
+					if( decision<=20 ) curve = 0;
+				}
+				else if( curve==1 )
+				{
+					if( decision<=20 ) curve = 0;
+				}
+			}
+		}
 		//
 
-		PlayerUpdate();
+		UpdateEnemies();
+		UpdatePlayer();
 		RenderRoad();
 
 		//SDL_RenderClear( g_renderer ); //TODO: really needed?
@@ -130,8 +149,8 @@ void main()
 		SDL_RenderPresent( g_renderer );
 		
 		frame_count++;
-		ticks = SDL_GetTicks()-ticks;
-		acc += ticks;
+		last_frame_time = SDL_GetTicks()-ticks;
+		acc += last_frame_time;
 		if( acc>1000 ) 
 		{
 			acc -= 1000;
@@ -139,7 +158,7 @@ void main()
 			frame_count = 0;
 		}
 		//TODO: manually limit frame rate to 60 fps?
-		acc_noise += ticks;
+		acc_noise += last_frame_time;
 		if( acc_noise>100 )
 		{
 			acc_noise -= 100;

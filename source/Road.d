@@ -11,25 +11,31 @@
 */
 module Road;
 import std.stdio, std.random, std.math;
-import Globals, Sprites, Player;
+import Globals, Sprites, Player, Enemies;
 
 //TODO: should all this be moved to globals?
-enum road_start_line = 72;
-enum road_end_line   = 175;
-enum road_length     = road_end_line-road_start_line;
-enum road_width      = 101;
-enum road_max_curve  = 176;
-enum disturb_size    = 13;
-enum screen_center   = (SCREEN_WIDTH/2)+VSCREEN_X_PAD;
+enum ROAD_START_LINE = 72;
+enum ROAD_END_LINE   = 175;
+enum ROAD_LENGTH     = ROAD_END_LINE-ROAD_START_LINE;
+enum ROAD_WIDTH      = 101;
+enum ROAD_MAX_CURVE  = 176;
+enum DISTURB_SIZE    = 13;
 
 struct Road
 {
-	float center = screen_center;
+	float center = SCREEN_CENTER;
 	float noise = 0.0f;
 	float curve = 0.0f;
 	float disturb = 0;
 }
 Road road;
+
+struct Enemy
+{
+	float pos;	//translates to line on the road
+	byte side;	//0 - left side, 1 - center, 2 - right side
+}
+Enemy[4] enemies;
 
 //CalcRoadCurve
 ///line - from 0 to "road_length"
@@ -37,7 +43,7 @@ pragma( inline, true )
 float CalcRoadCurve( int line )	
 {
 	//max curve 176! 176
-	return road.center-road.curve+sin(0.8f+cast(float)line/road_length*0.85f)*road.curve;
+	return road.center-road.curve+sin(0.8f+cast(float)line/ROAD_LENGTH*0.85f)*road.curve;
 	//TODO: the road curvature is now _almost_ exactly equal to the original game :) good enough for me
 }
 
@@ -47,14 +53,14 @@ void RenderRoad()
 	//TODO: do I really need to clear the screen?
 	//g_screen[] = 0;
 
-	road.center = screen_center-cast(int)(player.position/1.75f);
+	road.center = SCREEN_CENTER-cast(int)(player.position/1.75f);
 
 	//"run" the dirturb through the road
 	road.disturb += player.speed;
-	if( road.disturb>road_end_line+disturb_size ) road.disturb = 0;
+	if( road.disturb>ROAD_END_LINE+DISTURB_SIZE ) road.disturb = 0;
 
-	int player_line = cast(int)(road_length-player_sprite[0].height-(player.speed*2.0f));
-	int player_center = cast(int)(screen_center+player.position);
+	int player_line = cast(int)(ROAD_LENGTH-car_sprite[12].height-(player.speed*2.5f));
+	int player_center = cast(int)(SCREEN_CENTER+player.position);
 	int left_road, right_road;
 
 	//do not apply noise to the road in case the player is not moving
@@ -62,39 +68,39 @@ void RenderRoad()
 
 	//trace the road
 	float dist = 0;
-	float step = (road_width/2.0f)/road_length;
-	for( int r=0; r<road_length; ++r )
+	float step = (ROAD_WIDTH/2.0f)/ROAD_LENGTH;
+	for( int r=0; r<ROAD_LENGTH; ++r )
 	{	
 		//calculate the center of the road considering its curve
-		float center = road.noise+CalcRoadCurve(r);
+		float center = /*road.noise+*/CalcRoadCurve(r);
 
 		//fill the road's background
 		//TODO: color variation according to "season" and "time of day"
-		g_screen[VSCREEN_WIDTH*(r+road_start_line)+VSCREEN_X_PAD..(VSCREEN_WIDTH*(r+road_start_line)+VSCREEN_X_PAD+SCREEN_WIDTH)] = 255<<24 | 255<<16;
+		g_screen[VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD..(VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD+SCREEN_WIDTH)] = 255<<24 | 255<<16;
 	
 		//TODO: this needs more work
 		float save_dist = dist;
 		float diff = r-road.disturb;
-		if( diff>=-disturb_size && diff<=disturb_size )
+		if( diff>=-DISTURB_SIZE && diff<=DISTURB_SIZE )
 		{
-			float tmp = (r/75.0f)*(-disturb_size+fabs(diff/1.0f));
+			float tmp = (r/75.0f)*(-DISTURB_SIZE+fabs(diff/1.0f));
 			if( tmp<-3 ) tmp = -3;
 			dist += tmp;
 		}
 
 		//plot the road's outline
-		g_screen[cast(int)((VSCREEN_WIDTH*(r+road_start_line))+center-dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
-		g_screen[cast(int)((VSCREEN_WIDTH*(r+road_start_line))+center+dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
+		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center-dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
+		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center+dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
 
 		//save the road's boundaries at the player's line of collision
-		//you could calculate this outside of the loop, too, but let's do this for now
+		//you could calculate this outside of the loop, too, but let's do this for now (mainly because of the disturbance)
 		if( r==player_line )
 		{
 			left_road = cast(int)(center-dist);
 			right_road = cast(int)(center+dist);
 		}
 
-		if( diff>=-disturb_size && diff<=disturb_size ) dist = save_dist;
+		if( diff>=-DISTURB_SIZE && diff<=DISTURB_SIZE ) dist = save_dist;
 
 		dist += step;
 	}
@@ -104,7 +110,7 @@ void RenderRoad()
 	if( player.speed>float.epsilon )
 	{
 		spr_count++;
-		if( spr_count>=(player_max_speed/2.0f)-(player.speed/2.0f) )
+		if( spr_count>=(PLAYER_MAX_SPEED/2.0f)-(/*player.speed*/0.2f/2.0f) )
 		{
 			spr_count = 0;
 			spr_num++;
@@ -112,12 +118,12 @@ void RenderRoad()
 		}
 	}
 
-	BlitSprite( player_sprite[spr_num], player_center-8, player_line+road_start_line, 0xFFFFFFFF );
+	BlitSprite( car_sprite[12+spr_num], player_center-8, player_line+ROAD_START_LINE, 0xFFFFFFFF );
 
 	//apply "physics" to the player
 	//TODO: those values _still_ need adjustment, of course, to match the original game
-	float force = road.curve/(road_max_curve*player_max_speed);
-	player.position += force*(player.speed/player_max_speed);
+	float force = road.curve/(ROAD_MAX_CURVE*PLAYER_MAX_SPEED);
+	player.position += force*(player.speed/PLAYER_MAX_SPEED);
 
 	//collide with the road
 	//TODO: handle speed loss, and "enemy cars" overtaking the player in case of colision
@@ -135,7 +141,72 @@ void RenderRoad()
 		}
 	}
 
-	//TODO: obstacle cars
+	//stop "car collision status" when player touches one of the sides of the road
+	if( (player.collision==EPCol.RIGHT_CAR  && player_center-6<=left_road ) ||
+	    (player.collision==EPCol.LEFT_CAR && player_center+6>=right_road) ) player.collision = EPCol.NONE;
+
+	//TODO: ANOTHER temporary ugly stuff to "animate" the sprite :P
+	static int spr2_count = 0, spr2_num = 0;
+	spr2_count++;
+	if( spr2_count>=ENEMY_SPEED )
+	{
+		spr2_count = 0;
+		spr2_num++;
+		if( spr2_num==2 ) spr2_num = 0;
+	}
+
+	//TODO: obstacle cars - render them elsewhere?
+	for( int i=0; i<MAX_ENEMIES; ++i )
+	{
+		if( enemies_[i].active==false ) continue;
+		if( enemies_[i].pos<float.epsilon || enemies_[i].pos>ROAD_LENGTH ) continue;
+	
+		//TODO: do some type of mapping from "screen lines" to "car distance" to make the approaching of cars more "convincing"?
+		int enemy_line = cast(int)enemies_[i].pos-2;
+		float enemy_dist = (enemy_line*step)/1.65f;
+		float enemy_center = CalcRoadCurve(enemy_line+5);	//TODO: why dos this have to be +5?
+
+		int enemy_size = 0;
+		//TODO: find a way to calculate this?
+		//road - from 0 to 103
+		if( enemy_line>=11 ) enemy_size = 1; //12
+		if( enemy_line>=19 ) enemy_size = 2; //20
+		if( enemy_line>=29 ) enemy_size = 3; //30
+		if( enemy_line>=42 ) enemy_size = 4; //42
+		if( enemy_line>=60 ) enemy_size = 5; //61
+		if( enemy_line>=84 ) enemy_size = 6; //85
+
+		if( enemies_[i].side==0 ) enemy_center -= enemy_dist;
+		else if( enemies_[i].side==2 ) enemy_center += enemy_dist;
+
+		BlitSprite( car_sprite[enemy_size*2+spr2_num], (cast(int)enemy_center)-8, enemy_line+ROAD_START_LINE, enemies_[i].color );
+
+		//collide with the player
+		//TODO: needs some fine-tuning
+		if( player.collision==EPCol.NONE )
+		{
+			if( enemy_line+10>=player_line && enemy_line<=player_line+4 )
+			{
+				if( enemy_center+13>=player_center && enemy_center<=player_center+13 )
+				{
+					//immediately matches player's speed with enemy's speed so it seems the car 'bounced'
+					player.speed = ENEMY_SPEED;
+					if( enemies_[i].side==0 ) PlayerCollide( EPCol.LEFT_CAR );
+					else if( enemies_[i].side==1 )
+					{
+						if( enemy_center< player_center )
+							PlayerCollide( EPCol.LEFT_CAR );
+						else
+							PlayerCollide( EPCol.RIGHT_CAR );
+					} 
+					else if( enemies_[i].side==2 ) PlayerCollide( EPCol.RIGHT_CAR );
+				}
+			}
+		}
+	}
+
+	g_screen[ (ROAD_END_LINE*VSCREEN_WIDTH)..((ROAD_END_LINE+10)*VSCREEN_WIDTH) ] = 0;
+
 }
 
 //EOF

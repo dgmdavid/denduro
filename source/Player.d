@@ -13,8 +13,8 @@ module Player;
 import Globals, Sprites;
 
 //TODO: should this be moved to globals?
-enum player_max_speed = 5.0f;
-enum player_max_position = 30;
+enum PLAYER_MAX_SPEED = 5.0f;
+enum PLAYER_MAX_POSITION = 30;
 
 struct Player
 {
@@ -36,45 +36,22 @@ enum EPCol
 	NONE, LEFT, RIGHT, LEFT_CAR, RIGHT_CAR
 }
 
-//player sprites
-Sprite[2] player_sprite = [ 
-	{ 16, 11, [	0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-				1,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,0,0,1,1,1,1,0,0,0,0,1,1	] },
-
-	{ 16, 11, [	0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,0,0,1,1,1,1,0,0,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
-				0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,
-				1,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0	] }
-	];
-
-//PlayerUpdate
-void PlayerUpdate()
+//UpdatePlayer
+void UpdatePlayer()
 {
 	if( player.collision==EPCol.NONE )
 	{
-		if( player.turn_left  ) Decrease( player.position, 1, -player_max_position );
-		if( player.turn_right ) Increase( player.position, 1, player_max_position );
+		if( player.speed>float.epsilon )
+		{
+			if( player.turn_left  ) Decrease( player.position, 1, -PLAYER_MAX_POSITION );
+			if( player.turn_right ) Increase( player.position, 1, PLAYER_MAX_POSITION );
+		}
 		//TODO: adjust at what rate the speed increases and the maximum value
-		if( player.accelerate   ) Increase( player.speed, 0.025f, player_max_speed );
-		if( player.deaccelerate ) Decrease( player.speed, 0.05f, 0.1f );
+		if( player.accelerate   ) Increase( player.speed, 0.015f, PLAYER_MAX_SPEED );
+		if( player.deaccelerate ) Decrease( player.speed, 0.04f, 0.1f );
 	} else
 
+	//TODO: needless to say those values need to be fine-adjusted
 	if( player.collision==EPCol.LEFT || player.collision==EPCol.RIGHT )
 	{
 		if( player.collision==EPCol.LEFT  ) player.position += 0.3f;
@@ -82,29 +59,21 @@ void PlayerUpdate()
 		Decrease( player.pos, 0.3f, 0 );
 		Decrease( player.speed, 0.04f, 0.5f );
 		if( player.pos<=float.epsilon ) player.collision = EPCol.NONE;
+	} else
+	if( player.collision==EPCol.LEFT_CAR || player.collision==EPCol.RIGHT_CAR )
+	{
+		if( player.collision==EPCol.LEFT_CAR  ) player.position += 0.4f;
+		if( player.collision==EPCol.RIGHT_CAR ) player.position -= 0.4f;
+		Decrease( player.pos, 0.3f, 0 );
+		Decrease( player.speed, 0.02f, 0.85f );
 	}
 }
 
 //PlayerCollide
 void PlayerCollide( EPCol type )
 {
-	final switch( type )
-	{
-		case EPCol.NONE:
-			break;
-
-		case EPCol.LEFT:
-		case EPCol.RIGHT:
-		{
-			player.collision = type;
-			player.pos = 10;
-		} break;
-		
-		case EPCol.LEFT_CAR:
-		case EPCol.RIGHT_CAR:
-		{
-		} break;
-	}
+	player.collision = type;
+	if( player.collision==EPCol.LEFT || player.collision==EPCol.RIGHT ) player.pos = 10;
 }
 
 //EOF
