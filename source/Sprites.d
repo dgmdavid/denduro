@@ -18,9 +18,17 @@ struct Sprite
 	ubyte *data;
 }
 
+struct FullColorSprite
+{
+	ubyte width, height;
+	uint *data;
+}
+
 //BlitSprite
 void BlitSprite( ref Sprite sprite, int x, int y, uint color )
 {
+	//TODO: correct with PAD, verify player/enemies blitting
+	//x += VSCREEN_X_PAD;
 	for( int ey=0; ey<sprite.height; ey++ )
 	{
 		for( int ex=0; ex<sprite.width; ex++ )
@@ -29,6 +37,176 @@ void BlitSprite( ref Sprite sprite, int x, int y, uint color )
 		}
 	}
 }
+
+//BlitSpriteScroll
+void BlitSpriteScroll( ref Sprite sprite, int x, int y, uint color, byte scroll )
+{
+	x += VSCREEN_X_PAD;
+	int s_line = scroll;
+	for( int ey=0; ey<sprite.height; ey++ )
+	{
+		for( int ex=0; ex<sprite.width; ex++ )
+		{
+			if( sprite.data[s_line*sprite.width+ex]==1 ) g_screen[((ey+y)*VSCREEN_WIDTH)+(ex+x)] = color;
+		}
+		s_line++;
+		if( s_line>=sprite.height ) s_line = 0;
+	}
+}
+
+//BlitSpriteNumbersScroll
+void BlitSpriteNumbersScroll( int x, int y, uint color, byte scroll, byte number )
+{
+	x += VSCREEN_X_PAD;
+	Sprite sprite = numbers[number];
+	int s_line = scroll;
+	for( int ey=0; ey<sprite.height; ey++ )
+	{
+		for( int ex=0; ex<sprite.width; ex++ )
+		{
+			if( sprite.data[s_line*sprite.width+ex]==1 ) g_screen[((ey+y)*VSCREEN_WIDTH)+(ex+x)] = color;
+		}
+		s_line++;
+		if( s_line>=sprite.height ) 
+		{
+			s_line = 0;
+			number++;
+			if( number>9 ) number = 0;
+			sprite = numbers[number];
+		}
+	}
+}
+
+//BlitFullColorSpriteScroll
+void BlitFullColorSpriteScroll( ref FullColorSprite sprite, int x, int y, byte scroll )
+{
+	x += VSCREEN_X_PAD;
+	int s_line = scroll;
+	for( int ey=0; ey<sprite.height; ey++ )
+	{
+		for( int ex=0; ex<sprite.width; ex++ )
+			g_screen[((ey+y)*VSCREEN_WIDTH)+(ex+x)] = sprite.data[s_line*sprite.width+ex];
+		s_line++;
+		if( s_line>=sprite.height ) s_line = 0;
+	}
+}
+
+//mini-car
+Sprite mini_car =
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,1,0,0,0,0,1,0,
+			 0,1,1,1,1,1,1,0,
+			 0,1,0,1,1,0,1,0,
+			 0,0,0,1,1,0,0,0,
+			 0,1,0,1,1,0,1,0,
+			 0,1,1,1,1,1,1,0,
+			 0,1,0,1,1,0,1,0,
+	 		 0,0,0,0,0,0,0,0 ] };
+
+//numbers
+Sprite[10] numbers = [
+	//0
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//1
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,0,1,1,0,0,0,
+			 0,0,1,1,1,0,0,0,
+			 0,0,0,1,1,0,0,0,
+			 0,0,0,1,1,0,0,0,
+			 0,0,0,1,1,0,0,0,
+			 0,0,0,1,1,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//2
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,0,0,0,
+			 0,1,1,0,0,0,0,0,
+			 0,1,1,1,1,1,1,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//3
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,1,1,1,0,0,
+			 0,0,0,0,0,1,1,0,
+			 0,1,0,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//4
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,1,1,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//5
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,1,1,1,1,1,0,0,
+			 0,1,1,0,0,0,1,0,
+			 0,1,1,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,1,0,
+			 0,1,1,1,1,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//6
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,0,1,0,
+			 0,1,1,0,0,0,0,0,
+			 0,1,1,1,1,1,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//7
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,1,1,1,1,1,1,0,
+			 0,1,1,1,1,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//8
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,0,1,1,1,1,0,0,
+			 0,0,0,0,0,0,0,0 ] },
+	//9
+	{ 8, 9, [0,0,0,0,0,0,0,0,
+			 0,0,1,1,1,1,0,0,
+			 0,1,1,0,0,1,1,0,
+			 0,1,1,0,0,1,1,0,
+			 0,0,1,1,1,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,1,1,0,
+			 0,0,0,0,0,0,0,0 ] }
+
+];
 
 //car sprites
 Sprite[14] car_sprite = [ 
@@ -209,5 +387,23 @@ Sprite[14] car_sprite = [
 
 ];
 
+//dgm soft logo
+enum W = 0xFFFFFFFF;
+enum R = 0xFFFF0000;//0xFF912640;
+enum O = 0xFFFF8000;//0xFFA37513;
+enum Y = 0xFFFFFF00;//0xFFA8B828;
+enum G = 0xFF00FF00;//0xFF5B8D2D;
+enum B = 0xFF0000FF;//0xFF4D4DBB;
+
+FullColorSprite dgm_soft_logo =
+	{ 52, 9, [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	 		  0,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,R,W,W,W,W,0,0,0,W,W,0,0,W,0,0,0,W,0,W,W,W,0,W,W,W,0,W,W,W,W,W,W,W,0,
+	 		  0,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,W,0,0,W,0,W,0,0,W,0,W,W,0,W,W,0,W,0,0,0,W,0,W,0,W,0,0,0,0,W,0,0,
+	 		  0,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,W,0,0,W,0,W,0,0,0,0,W,W,W,W,W,0,W,W,W,0,W,0,W,0,W,W,0,0,0,W,0,0,
+	 		  0,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,W,0,0,W,0,W,0,W,W,0,W,0,W,0,W,0,0,0,W,0,W,0,W,0,W,0,0,0,0,W,0,0,
+	 		  0,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,0,0,W,0,W,0,0,W,0,W,0,0,0,W,0,W,W,W,0,W,W,W,0,W,0,0,0,0,W,0,0,
+	 		  0,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,0,0,W,0,W,0,0,W,0,W,0,0,0,W,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	 		  0,B,B,B,B,B,B,B,B,B,B,B,B,B,B,B,B,B,B,W,W,W,W,0,0,0,W,W,W,0,W,0,0,0,0,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,0,
+			  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ] };
 
 //EOF

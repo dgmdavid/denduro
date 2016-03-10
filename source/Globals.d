@@ -22,6 +22,8 @@ enum SCREEN_CENTER   = (SCREEN_WIDTH/2)+VSCREEN_X_PAD;
 SDL_Renderer *g_renderer;
 uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 
+bool ENABLE_COLLISION = true;
+
 //Increase
 pragma( inline, true )
 void Increase(T)( ref T value, T amount, T max )

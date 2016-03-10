@@ -10,7 +10,7 @@
 	No warranty is offered or implied; use this code at your own risk.
 */
 module Enemies;
-import std.random;
+import std.random, std.math;
 import Globals, Road, Player;
 
 enum MAX_ENEMIES = 12;
@@ -37,6 +37,17 @@ void InitEnemies()
 	}
 }
 
+//NearCar
+bool NearCar( byte side, float pos )
+{
+	for( int i=0; i<MAX_ENEMIES; ++i )
+	{
+		if( enemies_[i].active==false ) continue;
+		if( abs( pos-enemies_[i].pos )<35 ) return true;
+	}
+	return false;
+}
+
 //UpdatEnemies
 void UpdateEnemies()
 {
@@ -49,17 +60,68 @@ void UpdateEnemies()
 			enemies_[i].pos -= ENEMY_SPEED;
 			enemies_[i].pos += player.speed;
 
+			//if the enemy is able to overtake the player, avoid crashing into the player
+			//TODO: it's not quite working yet -- should I consider if the player is in "collision mode" and going to one side or another? probably
+			if( player.speed<ENEMY_SPEED )
+			{
+				if( enemies_[i].pos>=ROAD_LENGTH && enemies_[i].pos<=ROAD_LENGTH+20 )	
+				{
+					//TODO: see if there isn't already another car near the new position
+					//enemy is in the left side
+					if( enemies_[i].side==0 )
+					{
+						if( player.position<=-8 ) enemies_[i].side = 2;
+					}
+					//enemy is in the center
+					else if( enemies_[i].side==1 )
+					{
+						if( player.position>=-15 && player.position<=15 ) 
+						{
+							if( uniform(0,2)==0 )
+								enemies_[i].side = 0;
+							else
+								enemies_[i].side = 2;
+						}
+					}
+					//enemy is in the right side
+					else if( enemies_[i].side==2 )
+					{
+						if( player.position>=8 ) enemies_[i].side = 0;
+					}
+
+				}
+			}
+
+			//if the enemy is too distant, "despawn" it
 			if( enemies_[i].pos<-ENEMY_MAX_DISTANCE || enemies_[i].pos>ENEMY_MAX_DISTANCE ) enemies_[i].active = false;
 
 		} else {
 			//spawn new enemy 
-			//TODO: consider some time of timming
-			if( uniform(1,500)<5 )
+			//TODO: consider some tipe of timming?
+			if( player.speed>float.epsilon && uniform(1,50)<5 )
 			{
-				enemies_[i].pos = uniform( -80, -10 );
-				enemies_[i].side = cast(byte)uniform( 0, 3 );
-				enemies_[i].active = true;
-				enemies_[i].color = 0xFFFFFF00;
+				if( player.speed>=ENEMY_SPEED )
+				{
+					float position = uniform( -50, -10 );
+					byte side = cast(byte)uniform( 0, 3 );
+					if( !NearCar( side, position ) )
+					{
+						enemies_[i].pos = position;
+						enemies_[i].side = side;
+						enemies_[i].active = true;
+						enemies_[i].color = 0xFFFFFF00;
+					}
+				} else {
+					float position = uniform( ROAD_LENGTH+5, ROAD_LENGTH+50 );
+					byte side = cast(byte)uniform( 0, 3 );
+					if( !NearCar( side, position ) )
+					{
+						enemies_[i].pos = position;
+						enemies_[i].side = side;
+						enemies_[i].active = true;
+						enemies_[i].color = 0xFF00FF00;
+					}
+				}
 			}
 		}
 	}

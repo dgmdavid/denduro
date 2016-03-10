@@ -18,6 +18,7 @@ enum PLAYER_MAX_POSITION = 30;
 
 struct Player
 {
+	float kilometers = 0;
 	float position = 0, 
 		  speed = 0;
 

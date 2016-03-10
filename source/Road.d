@@ -14,8 +14,8 @@ import std.stdio, std.random, std.math;
 import Globals, Sprites, Player, Enemies;
 
 //TODO: should all this be moved to globals?
-enum ROAD_START_LINE = 72;
-enum ROAD_END_LINE   = 175;
+enum ROAD_START_LINE = 73;
+enum ROAD_END_LINE   = 176;
 enum ROAD_LENGTH     = ROAD_END_LINE-ROAD_START_LINE;
 enum ROAD_WIDTH      = 101;
 enum ROAD_MAX_CURVE  = 176;
@@ -127,23 +127,26 @@ void RenderRoad()
 
 	//collide with the road
 	//TODO: handle speed loss, and "enemy cars" overtaking the player in case of colision
-	if( player.collision==EPCol.NONE )
+	if( ENABLE_COLLISION )
 	{
-		if( player_center-7<=left_road )
+		if( player.collision==EPCol.NONE )
 		{
-			//player.position += abs( player_center-8-left_road );
-			PlayerCollide( EPCol.LEFT );
+			if( player_center-7<=left_road )
+			{
+				//player.position += abs( player_center-8-left_road );
+				PlayerCollide( EPCol.LEFT );
+			}
+			if( player_center+7>=right_road )
+			{
+				//player.position -= abs( player_center+7-right_road );
+				PlayerCollide( EPCol.RIGHT );
+			}
 		}
-		if( player_center+7>=right_road )
-		{
-			//player.position -= abs( player_center+7-right_road );
-			PlayerCollide( EPCol.RIGHT );
-		}
+	
+		//stop "car collision status" when player touches one of the sides of the road
+		if( (player.collision==EPCol.RIGHT_CAR && player_center-6<=left_road ) ||
+	   	    (player.collision==EPCol.LEFT_CAR  && player_center+6>=right_road) ) player.collision = EPCol.NONE;
 	}
-
-	//stop "car collision status" when player touches one of the sides of the road
-	if( (player.collision==EPCol.RIGHT_CAR  && player_center-6<=left_road ) ||
-	    (player.collision==EPCol.LEFT_CAR && player_center+6>=right_road) ) player.collision = EPCol.NONE;
 
 	//TODO: ANOTHER temporary ugly stuff to "animate" the sprite :P
 	static int spr2_count = 0, spr2_num = 0;
@@ -183,7 +186,7 @@ void RenderRoad()
 
 		//collide with the player
 		//TODO: needs some fine-tuning
-		if( player.collision==EPCol.NONE )
+		if( ENABLE_COLLISION && player.collision==EPCol.NONE )
 		{
 			if( enemy_line+10>=player_line && enemy_line<=player_line+4 )
 			{
@@ -207,6 +210,23 @@ void RenderRoad()
 
 	g_screen[ (ROAD_END_LINE*VSCREEN_WIDTH)..((ROAD_END_LINE+10)*VSCREEN_WIDTH) ] = 0;
 
+	//TODO: move to another place
+	//render the score
+	//48x182 - 111x211
+	for( int y=182; y<=211; y++ )
+		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+48..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+112 ] = 0xFF912640;
+	//56x185 - 95x193 / 96x185 - 103x193
+	for( int y=185; y<=193; y++ )
+	{
+		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+56..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+96 ] = 0xFFB78927;
+		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+96..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+104 ] = 0;
+	}
+	//56x200 - 63x208 / 72x200 - 103x208
+	for( int y=200; y<=208; y++ )
+	{
+		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+56..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+64 ] = 0xFFB78927;
+		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+72..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+104 ] = 0xFFB78927;
+	}
 }
 
 //EOF

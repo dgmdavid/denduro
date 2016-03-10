@@ -23,7 +23,7 @@
 import std.stdio, std.random, std.math;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
-import Globals, Road, Player, Enemies;
+import Globals, Road, Player, Enemies, Sprites;
 debug import FontBMP;
 
 void main()
@@ -34,7 +34,7 @@ void main()
 	SDL_Init( SDL_INIT_VIDEO );
 	IMG_Init( IMG_INIT_PNG );
 
-	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*4), (SCREEN_HEIGHT*2), SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
+	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*4), (SCREEN_HEIGHT*2)+SCREEN_HEIGHT/32, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
 	g_renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC );
 
@@ -88,6 +88,7 @@ void main()
 					if( k==SDL_SCANCODE_RIGHT || k==SDL_SCANCODE_D ) player.turn_right = false;
 					if( k==SDL_SCANCODE_DOWN  || k==SDL_SCANCODE_S ) player.deaccelerate = false;
 					if( k==SDL_SCANCODE_SPACE || k==SDL_SCANCODE_RCTRL || k==SDL_SCANCODE_UP || k==SDL_SCANCODE_W ) player.accelerate = false;
+					debug if( k==SDL_SCANCODE_C ) ENABLE_COLLISION = !ENABLE_COLLISION;
 				} break;
 
 				default:
@@ -135,6 +136,42 @@ void main()
 		UpdatePlayer();
 		RenderRoad();
 
+		//TODO: player's kilometers -- move to another place -- finish it first :)
+		player.kilometers += player.speed/(PLAYER_MAX_SPEED*4);
+		int trunc = cast(int)player.kilometers;
+		float dec = player.kilometers-trunc;
+		int divisor = 10000;
+		uint color = 0;
+		for( int i=0; i<5; ++i )
+		{
+			int tmp = trunc/divisor;
+			tmp %= 10;
+			if( i==4 ) color = 0xFFB78927; 
+			BlitSpriteNumbersScroll( 64+i*8, 185, color, 0, cast(byte)tmp );
+			divisor /= 10;
+		}
+
+		BlitSprite( mini_car, 72+VSCREEN_X_PAD, 200, 0 );
+		BlitSpriteNumbersScroll( 56, 200, 0, 0, 1 );
+		BlitSpriteNumbersScroll( 80, 200, 0, 0, 2 );
+		BlitSpriteNumbersScroll( 88, 200, 0, 0, 0 );
+		BlitSpriteNumbersScroll( 96, 200, 0, 0, 0 );
+
+		//48x215
+		static float line=0;
+		static int logo=0;
+		logo+=last_frame_time;
+		if( logo>6000 )
+		{
+			line+=0.1f;
+			if( line>=9 )
+			{
+				line=0;
+				logo=0;
+			}
+		}
+		BlitFullColorSpriteScroll( dgm_soft_logo, 54, 215, cast(byte)line );
+
 		//SDL_RenderClear( g_renderer ); //TODO: really needed?
 		SDL_UpdateTexture( tex_screen, null, cast(void*)g_screen+VSCREEN_X_PAD*uint.sizeof, VSCREEN_WIDTH*uint.sizeof );
 		SDL_RenderCopy( g_renderer, tex_screen, null, null );
@@ -144,6 +181,7 @@ void main()
 			RenderText( font, 0, 0, "FPS: %d", fps );
 			RenderText( font, 0, 16, "Player: pos:%.3f - speed:%.3f", player.position, player.speed );
 			RenderText( font, 0, 32, "Road: curve:%.3f", road.curve );
+			RenderText( font, 0, 48, "Collisions: %s", ENABLE_COLLISION?"enabled".ptr:"disabled".ptr );
 		}
 
 		SDL_RenderPresent( g_renderer );
