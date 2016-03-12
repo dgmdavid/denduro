@@ -23,7 +23,7 @@
 import std.stdio, std.random, std.math;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
-import Globals, Road, Player, Enemies, Sprites;
+import Globals, Audio, Road, Player, Enemies, Sprites;
 debug import FontBMP;
 
 void main()
@@ -33,6 +33,12 @@ void main()
 
 	SDL_Init( SDL_INIT_VIDEO );
 	IMG_Init( IMG_INIT_PNG );
+
+	if( !InitAudio() ) 
+	{
+		ENABLE_AUDIO = false;
+		writeln("NO AUDIO!");
+	}
 
 	SDL_Window *window = SDL_CreateWindow( "Denduro", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (SCREEN_WIDTH*4), (SCREEN_HEIGHT*2)+SCREEN_HEIGHT/32, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE );
 
@@ -78,6 +84,12 @@ void main()
 					if( k==SDL_SCANCODE_RIGHT || k==SDL_SCANCODE_D ) player.turn_right = true;
 					if( k==SDL_SCANCODE_DOWN  || k==SDL_SCANCODE_S ) player.deaccelerate = true;
 					if( k==SDL_SCANCODE_SPACE || k==SDL_SCANCODE_RCTRL || k==SDL_SCANCODE_UP || k==SDL_SCANCODE_W ) player.accelerate = true;
+
+					//TODO: test stuff, remove later
+					if( k==SDL_SCANCODE_Q ) TEST_STEP++;
+					if( k==SDL_SCANCODE_W ) TEST_STEP--;
+					if( k==SDL_SCANCODE_A ) TEST_STEP2+=0.025f;
+					if( k==SDL_SCANCODE_S ) TEST_STEP2-=0.025f;
 				} break;
 
 				case SDL_KEYUP:
@@ -181,7 +193,7 @@ void main()
 			RenderText( font, 0, 0, "FPS: %d", fps );
 			RenderText( font, 0, 16, "Player: pos:%.3f - speed:%.3f", player.position, player.speed );
 			RenderText( font, 0, 32, "Road: curve:%.3f", road.curve );
-			RenderText( font, 0, 48, "Collisions: %s", ENABLE_COLLISION?"enabled".ptr:"disabled".ptr );
+			RenderText( font, 0, 48, "Collisions: %s - %d - %f", ENABLE_COLLISION?"enabled".ptr:"disabled".ptr, TEST_STEP, TEST_STEP2 );
 		}
 
 		SDL_RenderPresent( g_renderer );
@@ -209,6 +221,7 @@ void main()
  	SDL_DestroyTexture( tex_screen );
  	SDL_DestroyRenderer( g_renderer );
 	SDL_DestroyWindow( window );
+	SDL_CloseAudio();
 	IMG_Quit();
 	SDL_Quit();
 }
