@@ -44,8 +44,9 @@ void UpdatePlayer()
 	{
 		if( player.speed>float.epsilon )
 		{
-			if( player.turn_left  ) Decrease( player.position, 1, -PLAYER_MAX_POSITION );
-			if( player.turn_right ) Increase( player.position, 1, PLAYER_MAX_POSITION );
+			float velocity = (player.speed*1.25f)/PLAYER_MAX_SPEED;
+			if( player.turn_left  ) Decrease( player.position, velocity, -PLAYER_MAX_POSITION );
+			if( player.turn_right ) Increase( player.position, velocity, PLAYER_MAX_POSITION );
 		}
 		//TODO: adjust at what rate the speed increases and the maximum value
 		if( player.accelerate   ) Increase( player.speed, 0.015f, PLAYER_MAX_SPEED );

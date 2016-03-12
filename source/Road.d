@@ -53,7 +53,7 @@ void RenderRoad()
 	//TODO: do I really need to clear the screen?
 	//g_screen[] = 0;
 
-	road.center = SCREEN_CENTER-cast(int)(player.position/1.75f);
+	road.center = SCREEN_CENTER-cast(int)(player.position/1.0f);
 
 	//"run" the dirturb through the road
 	road.disturb += player.speed;
@@ -172,12 +172,12 @@ void RenderRoad()
 		int enemy_size = 0;
 		//TODO: find a way to calculate this?
 		//road - from 0 to 103
-		if( enemy_line>=11 ) enemy_size = 1; //12
-		if( enemy_line>=19 ) enemy_size = 2; //20
-		if( enemy_line>=29 ) enemy_size = 3; //30
-		if( enemy_line>=42 ) enemy_size = 4; //42
-		if( enemy_line>=60 ) enemy_size = 5; //61
-		if( enemy_line>=84 ) enemy_size = 6; //85
+		if( enemy_line>=10 ) enemy_size = 1; //12
+		if( enemy_line>=18 ) enemy_size = 2; //20
+		if( enemy_line>=28 ) enemy_size = 3; //30
+		if( enemy_line>=41 ) enemy_size = 4; //42
+		if( enemy_line>=59 ) enemy_size = 5; //61
+		if( enemy_line>=83 ) enemy_size = 6; //85
 
 		if( enemies_[i].side==0 ) enemy_center -= enemy_dist;
 		else if( enemies_[i].side==2 ) enemy_center += enemy_dist;
