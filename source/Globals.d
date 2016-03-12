@@ -27,7 +27,7 @@ uint[VSCREEN_WIDTH*VSCREEN_HEIGHT] g_screen;
 bool ENABLE_COLLISION = true;
 bool ENABLE_AUDIO = true;
 
-shared int TEST_STEP = 20;
+shared int TEST_STEP = 4;
 shared float TEST_STEP2 = 1;
 
 //Increase

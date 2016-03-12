@@ -8,14 +8,30 @@
 	recognized, you are granted a perpetual, irrevocable license to copy,
 	distribute, and modify this file as you see fit.
 	No warranty is offered or implied; use this code at your own risk.
+
+	Some info on Atari's sound for reference:
+
+		2 channels
+		AUDVX - Volume - 4 bits
+		AUDFX - Frequency divider - 5 bits (31399.5 Hz / X in a NTSC system)
+		AUDCX - Noise/2nd divider - 4 bits:
+			Noise/Division Control (0-15, see below)
+			  0  set to 1                    8  9 bit poly (white noise)
+			  1  4 bit poly                  9  5 bit poly
+  			  2  div 15 -> 4 bit poly        A  div 31 : pure tone
+  			  3  5 bit poly -> 4 bit poly    B  set last 4 bits to 1
+  		  	  4  div 2 : pure tone           C  div 6 : pure tone
+  			  5  div 2 : pure tone           D  div 6 : pure tone
+  			  6  div 31 : pure tone          E  div 93 : pure tone
+  			  7  5 bit poly -> div 2         F  5 bit poly div 6
 */
 module Audio;
 import std.stdio, std.random, core.stdc.stdlib, std.math;
 import derelict.sdl2.sdl;
 import Globals, Player;
 
-enum SOUND_FREQ = 8000;
-enum SOUND_SAMPLES = 800;
+enum SOUND_FREQ =  31440;
+enum SOUND_SAMPLES = 1024;
 enum PI = 3.14159f;
 enum PIH = 1.57079f;
 enum PIQ = 0.78539f;
@@ -42,16 +58,6 @@ bool InitAudio()
 	return true;
 }
 
-extern(C) nothrow float TriangleWave( float period, float constant )
-{
-	return (2.0f/PI)*asin(sin((PI2/constant)*period));
-}
-
-extern(C) nothrow float SquareWave( float period, float constant )
-{
-	return period%constant;
-}
-
 //Fillaudio
 extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 {
@@ -60,21 +66,36 @@ extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 	static float i = 0;
 	Uint8 volume = 12;
 
+	static int counter = 0, index = 0;
+	int divider = (31400/TEST_STEP);
+
+	struct Waveform
+	{
+		ubyte len;
+		ubyte *data;
+	}
+
+	Waveform wave = { 10, [4,0,4,1,4,2,4,3,4,4] };
+	Waveform wave2 = { 10, [1,1,2,2,3,3,4,4,0,0] };
+	Waveform wave3 = { 13, [4,2,4,1,4,4,4,1,4,3,0,0,1] };
+	Waveform wave4 = { 8, [0,0,0,0,4,4,4,4] };
+
+	Waveform cur_wave = wave;
+
 	for( int r=0; r<len; ++r )
 	{
-		float data = 0;// sin(i*3.1415)*16;
-		//data = sin(i%PIQ)*(i%4.0f);
+		ubyte data = cast(ubyte)(cur_wave.data[index]*4);
 
-		//data = sin(i%TEST_STEP2)*cos(i%4.0f);
-		data = fmod(i,1);
-
-		if( data>1.0f ) data = 1.0f;
-		if( data<-1.0f ) data = -1.0f;
-
-		*stream = cast(ubyte)(volume+(data*volume));
+		*stream = cast(ubyte)(data);
 		stream++;
 
-		i += cast(float)TEST_STEP/10000.0f;
+		counter++;
+		if( counter>=divider )
+		{
+			counter = 0;
+			index++;
+			if( index>=cur_wave.len ) index = 0;
+		}
 	} 
 }
 

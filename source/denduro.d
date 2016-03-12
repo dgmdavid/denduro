@@ -19,6 +19,8 @@
 			Sprites:     2 sprites of 8pix width, 3 sprites of 1pix width
 
 		Additional info: http://problemkaputt.de/2k6specs.htm
+
+		Additional info on Atari's sound: http://www.randomterrain.com/atari-2600-memories-music-and-sound.html
 */
 import std.stdio, std.random, std.math;
 import derelict.sdl2.sdl;
