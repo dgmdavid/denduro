@@ -24,9 +24,12 @@
   			  5  div 2 : pure tone           D  div 6 : pure tone
   			  6  div 31 : pure tone          E  div 93 : pure tone
   			  7  5 bit poly -> div 2         F  5 bit poly div 6
+
+	More info here: http://www.randomterrain.com/atari-2600-memories-music-and-sound.html
+
 */
 module Audio;
-import std.stdio, std.random, core.stdc.stdlib, std.math;
+import std.stdio, std.random, core.stdc.stdlib, core.stdc.stdio, std.math;
 import derelict.sdl2.sdl;
 import Globals, Player;
 import TIASound;
@@ -38,10 +41,13 @@ enum PIH = 1.57079f;
 enum PIQ = 0.78539f;
 enum PI2 = 6.28318f;
 
-__gshared int SOUND_PASSING_CAR = 0;
-__gshared bool SOUND_SNOW = false;
-__gshared int SOUND_ENGINE = 0;
-__gshared bool SOUND_ROAD_COLLISION = false;
+__gshared 
+{
+	int SOUND_PASSING_CAR = 0;
+	bool SOUND_SNOW = false;
+	int SOUND_ENGINE = 0;
+	bool SOUND_ROAD_COLLISION = false;
+}
 
 //InitAudio
 bool InitAudio()
@@ -67,8 +73,10 @@ bool InitAudio()
 		writeln( "\tchannels: ", obtained.channels );
 		writeln( "\tsamples: ", obtained.samples );
 		writeln( "\tformat: ", obtained.format );
+		writeln( "\tsamples: ", obtained.samples );
 	}
 
+	//initialize TIASound
 	TIASound_Reset( obtained.freq );
 	TIASound_SetVolume( 30 );
 
@@ -80,7 +88,6 @@ bool InitAudio()
 //Fillaudio
 extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 {
-
 	if( !SOUND_ROAD_COLLISION )
 	{
 		if( SOUND_ENGINE>0 )
@@ -112,7 +119,16 @@ extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 		TIASound_SetRegister( TIARegister.AUDV1, 0 );
 	}
 
-	TIASound_Process( cast(short*)stream, len>>1 );
+	TIASound_Process( cast(short*)stream, len/2 );
+
+	//TODO: testing
+	/*with( core.stdc.stdio )
+	{
+		FILE *fp;
+		fp = fopen( "output.raw", "wb+" );
+		fwrite( stream, 1, len, fp );
+		fclose( fp );
+	}*/
 
 	/*
 	byte *ptr = cast(byte*)stream;
@@ -150,8 +166,8 @@ extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 			index++;
 			if( index>=cur_wave.len ) index = 0;
 		}
-	} */
-
+	} 
+	*/
 }
 
 //EOF

@@ -24,16 +24,16 @@ struct Enemy
 	uint color;
 	bool active;
 }
-Enemy[MAX_ENEMIES] enemies_;
+Enemy[MAX_ENEMIES] enemies;
 
 //InitEnemies
 void InitEnemies()
 {
-	foreach( enemy; enemies_ )
+	for( int i=0; i<MAX_ENEMIES; ++i )
 	{
-		enemy.pos = 0;
-		enemy.side = 0;
-		enemy.active = false;
+		enemies[i].pos = 0;
+		enemies[i].side = 0;
+		enemies[i].active = false;
 	}
 }
 
@@ -42,8 +42,8 @@ bool NearCar( byte side, float pos )
 {
 	for( int i=0; i<MAX_ENEMIES; ++i )
 	{
-		if( enemies_[i].active==false ) continue;
-		if( abs( pos-enemies_[i].pos )<35 ) return true;
+		if( enemies[i].active==false ) continue;
+		if( abs( pos-enemies[i].pos )<45 ) return true;
 	}
 	return false;
 }
@@ -55,45 +55,45 @@ void UpdateEnemies()
 
 	for( int i=0; i<MAX_ENEMIES; ++i )
 	{
-		if( enemies_[i].active )
+		if( enemies[i].active )
 		{
-			enemies_[i].pos -= ENEMY_SPEED;
-			enemies_[i].pos += player.speed;
+			enemies[i].pos -= ENEMY_SPEED;
+			enemies[i].pos += player.speed;
 
 			//if the enemy is able to overtake the player, avoid crashing into the player
 			//TODO: it's not quite working yet -- should I consider if the player is in "collision mode" and going to one side or another? probably
 			if( player.speed<ENEMY_SPEED )
 			{
-				if( enemies_[i].pos>=ROAD_LENGTH && enemies_[i].pos<=ROAD_LENGTH+20 )	
+				if( enemies[i].pos>=ROAD_LENGTH && enemies[i].pos<=ROAD_LENGTH+20 )	
 				{
 					//TODO: see if there isn't already another car near the new position
 					//enemy is in the left side
-					if( enemies_[i].side==0 )
+					if( enemies[i].side==0 )
 					{
-						if( player.position<=-8 ) enemies_[i].side = 2;
+						if( player.position<=-8 ) enemies[i].side = 2;
 					}
 					//enemy is in the center
-					else if( enemies_[i].side==1 )
+					else if( enemies[i].side==1 )
 					{
 						if( player.position>=-15 && player.position<=15 ) 
 						{
 							if( uniform(0,2)==0 )
-								enemies_[i].side = 0;
+								enemies[i].side = 0;
 							else
-								enemies_[i].side = 2;
+								enemies[i].side = 2;
 						}
 					}
 					//enemy is in the right side
-					else if( enemies_[i].side==2 )
+					else if( enemies[i].side==2 )
 					{
-						if( player.position>=8 ) enemies_[i].side = 0;
+						if( player.position>=8 ) enemies[i].side = 0;
 					}
 
 				}
 			}
 
 			//if the enemy is too distant, "despawn" it
-			if( enemies_[i].pos<-ENEMY_MAX_DISTANCE || enemies_[i].pos>ENEMY_MAX_DISTANCE ) enemies_[i].active = false;
+			if( enemies[i].pos<-ENEMY_MAX_DISTANCE || enemies[i].pos>ENEMY_MAX_DISTANCE ) enemies[i].active = false;
 
 		} else {
 			//spawn new enemy 
@@ -106,20 +106,20 @@ void UpdateEnemies()
 					byte side = cast(byte)uniform( 0, 3 );
 					if( !NearCar( side, position ) )
 					{
-						enemies_[i].pos = position;
-						enemies_[i].side = side;
-						enemies_[i].active = true;
-						enemies_[i].color = 0xFFFFFF00;
+						enemies[i].pos = position;
+						enemies[i].side = side;
+						enemies[i].active = true;
+						enemies[i].color = 0xFFFFFF00;
 					}
 				} else {
 					float position = uniform( ROAD_LENGTH+5, ROAD_LENGTH+50 );
 					byte side = cast(byte)uniform( 0, 3 );
 					if( !NearCar( side, position ) )
 					{
-						enemies_[i].pos = position;
-						enemies_[i].side = side;
-						enemies_[i].active = true;
-						enemies_[i].color = 0xFF00FF00;
+						enemies[i].pos = position;
+						enemies[i].side = side;
+						enemies[i].active = true;
+						enemies[i].color = 0xFF00FF00;
 					}
 				}
 			}

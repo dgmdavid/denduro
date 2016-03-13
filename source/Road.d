@@ -30,19 +30,12 @@ struct Road
 }
 Road road;
 
-struct Enemy
-{
-	float pos;	//translates to line on the road
-	byte side;	//0 - left side, 1 - center, 2 - right side
-}
-Enemy[4] enemies;
-
 //CalcRoadCurve
 ///line - from 0 to "road_length"
 pragma( inline, true )
 float CalcRoadCurve( int line )	
 {
-	//max curve 176! 176
+	//max curve 176!
 	return road.center-road.curve+sin(0.8f+cast(float)line/ROAD_LENGTH*0.85f)*road.curve;
 	//TODO: the road curvature is now _almost_ exactly equal to the original game :) good enough for me
 }
@@ -59,7 +52,7 @@ void RenderRoad()
 	road.disturb += player.speed;
 	if( road.disturb>ROAD_END_LINE+DISTURB_SIZE ) road.disturb = 0;
 
-	int player_line = cast(int)(ROAD_LENGTH-car_sprite[12].height-(player.speed*2.5f));
+	int player_line = cast(int)(ROAD_LENGTH-car_sprite[12].height-((player.speed<1)?0:(player.speed-0.75f)*3.0f));
 	int player_center = cast(int)(SCREEN_CENTER+player.position);
 	int left_road, right_road;
 
@@ -110,7 +103,7 @@ void RenderRoad()
 	if( player.speed>float.epsilon )
 	{
 		spr_count++;
-		if( spr_count>=(PLAYER_MAX_SPEED/2.0f)-(/*player.speed*/0.2f/2.0f) )
+		if( spr_count>=(PLAYER_MAX_SPEED/2.0f)-(player.speed/3.0f) )
 		{
 			spr_count = 0;
 			spr_num++;
@@ -158,26 +151,30 @@ void RenderRoad()
 		if( spr2_num==2 ) spr2_num = 0;
 	}
 
-
-	int enemy_line_distance = 999;
+	int enemy_line_distance = -999;
 
 	//TODO: obstacle cars - render them elsewhere?
 	for( int i=0; i<MAX_ENEMIES; ++i )
 	{
-		if( enemies_[i].active==false ) continue;
-		if( enemies_[i].pos<float.epsilon || enemies_[i].pos>ROAD_LENGTH ) continue;
+		if( enemies[i].active==false ) continue;
+		if( enemies[i].pos<float.epsilon || enemies[i].pos>ROAD_LENGTH ) continue;
 	
 		//TODO: do some type of mapping from "screen lines" to "car distance" to make the approaching of cars more "convincing"?
-		int enemy_line = cast(int)enemies_[i].pos-2;
+		int enemy_line = cast(int)enemies[i].pos-2;
 		float enemy_dist = (enemy_line*step)/1.65f;
 		float enemy_center = CalcRoadCurve(enemy_line+5);
 
 		//check if the enemy is near the player for sound effect
-		if( enemy_line+8>=player_line && enemy_line<=player_line+8 ) enemy_line_distance = enemy_line-player_line;
+		if( enemy_line+8>=player_line && enemy_line<=player_line+8 )
+		{
+			int eld = enemy_line-player_line;
+			if( eld>enemy_line_distance ) enemy_line_distance = eld;
+		}
 
 		int enemy_size = 0;
 		//TODO: find a way to calculate this?
 		//road - from 0 to 103
+		//TODO: this is currently wrong because it doesn't consider "where in the sprite the car begins to be drawn"
 		if( enemy_line>=10 ) enemy_size = 1; //12
 		if( enemy_line>=18 ) enemy_size = 2; //20
 		if( enemy_line>=28 ) enemy_size = 3; //30
@@ -185,10 +182,10 @@ void RenderRoad()
 		if( enemy_line>=58 ) enemy_size = 5; //61
 		if( enemy_line>=82 ) enemy_size = 6; //85
 
-		if( enemies_[i].side==0 ) enemy_center -= enemy_dist;
-		else if( enemies_[i].side==2 ) enemy_center += enemy_dist;
+		if( enemies[i].side==0 ) enemy_center -= enemy_dist;
+		else if( enemies[i].side==2 ) enemy_center += enemy_dist;
 
-		BlitSprite( car_sprite[enemy_size*2+spr2_num], (cast(int)enemy_center)-8, enemy_line+ROAD_START_LINE, enemies_[i].color );
+		BlitSprite( car_sprite[enemy_size*2+spr2_num], (cast(int)enemy_center)-8, enemy_line+ROAD_START_LINE, enemies[i].color );
 
 		//collide with the player
 		//TODO: needs some fine-tuning
@@ -200,15 +197,15 @@ void RenderRoad()
 				{
 					//immediately matches player's speed with enemy's speed so it seems the car 'bounced'
 					player.speed = ENEMY_SPEED;
-					if( enemies_[i].side==0 ) PlayerCollide( EPCol.LEFT_CAR );
-					else if( enemies_[i].side==1 )
+					if( enemies[i].side==0 ) PlayerCollide( EPCol.LEFT_CAR );
+					else if( enemies[i].side==1 )
 					{
 						if( enemy_center< player_center )
 							PlayerCollide( EPCol.LEFT_CAR );
 						else
 							PlayerCollide( EPCol.RIGHT_CAR );
 					} 
-					else if( enemies_[i].side==2 ) PlayerCollide( EPCol.RIGHT_CAR );
+					else if( enemies[i].side==2 ) PlayerCollide( EPCol.RIGHT_CAR );
 				}
 			}
 		}
@@ -217,7 +214,7 @@ void RenderRoad()
 	g_screen[ (ROAD_END_LINE*VSCREEN_WIDTH)..((ROAD_END_LINE+10)*VSCREEN_WIDTH) ] = 0;
 
 	//sound effect of the passing cars
-	if( enemy_line_distance!=999 ) SOUND_PASSING_CAR = 4;
+	if( enemy_line_distance!=-999 ) SOUND_PASSING_CAR = 4;
 
 	//TODO: move to another place
 	//render the score

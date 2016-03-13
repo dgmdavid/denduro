@@ -154,7 +154,7 @@ void TIASound_SetRegister( ushort register, ubyte value ) nothrow
 //TIASound_SetVolume
 void TIASound_SetVolume( ubyte percent )
 {
-  if( percent<=100 ) myVolumePercentage = percent;
+	if( percent<=100 ) myVolumePercentage = percent;
 }
 
 //TIASound_Process

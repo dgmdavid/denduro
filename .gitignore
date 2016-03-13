@@ -8,3 +8,4 @@ __dummy.html
 *.sublime-project
 *.sublime-workspace
 dub.userprefs
+output.raw

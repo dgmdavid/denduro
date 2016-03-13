@@ -14,6 +14,7 @@ import Globals, Sprites, Audio;
 
 //TODO: should this be moved to globals?
 enum PLAYER_MAX_SPEED = 5.0f;
+enum PLAYER_MIN_SPEED = 1.0f;
 enum PLAYER_MAX_POSITION = 30;
 
 struct Player
@@ -50,12 +51,13 @@ void UpdatePlayer()
 		}
 		//TODO: adjust at what rate the speed increases and the maximum value
 		//TODO: I think the speed must be accelerated at different rates, up until 2 speed up more quickly, up to 4 a slower etc... (it will make the engine sound closer to the original)
-		if( player.accelerate   ) 
+		if( player.accelerate ) 
 		{
-			     if( player.speed<2.4f  ) Increase( player.speed, 0.015f, PLAYER_MAX_SPEED );
-			else if( player.speed>=2.4f ) Increase( player.speed, 0.0075f, PLAYER_MAX_SPEED );
+			if( player.speed<PLAYER_MIN_SPEED ) player.speed = PLAYER_MIN_SPEED;
+			     if( player.speed<2.4f  ) Increase( player.speed, 0.010f, PLAYER_MAX_SPEED );
+			else if( player.speed>=2.4f ) Increase( player.speed, 0.006f, PLAYER_MAX_SPEED );
 		}
-		if( player.deaccelerate ) Decrease( player.speed, 0.04f, 0.1f );
+		if( player.deaccelerate && player.speed>PLAYER_MIN_SPEED ) Decrease( player.speed, 0.04f, PLAYER_MIN_SPEED );
 	} else
 
 	//TODO: needless to say those values need to be fine-adjusted
@@ -64,7 +66,7 @@ void UpdatePlayer()
 		if( player.collision==EPCol.LEFT  ) player.position += 0.3f;
 		if( player.collision==EPCol.RIGHT ) player.position -= 0.3f;
 		Decrease( player.pos, 0.3f, 0 );
-		Decrease( player.speed, 0.04f, 0.5f );
+		Decrease( player.speed, 0.04f, PLAYER_MIN_SPEED );
 		if( player.pos<=float.epsilon ) player.collision = EPCol.NONE;
 	} else
 	if( player.collision==EPCol.LEFT_CAR || player.collision==EPCol.RIGHT_CAR )
@@ -72,7 +74,7 @@ void UpdatePlayer()
 		if( player.collision==EPCol.LEFT_CAR  ) player.position += 0.4f;
 		if( player.collision==EPCol.RIGHT_CAR ) player.position -= 0.4f;
 		Decrease( player.pos, 0.3f, 0 );
-		Decrease( player.speed, 0.02f, 0.85f );
+		Decrease( player.speed, 0.02f, PLAYER_MIN_SPEED );
 	}
 
 	if( player.collision==EPCol.NONE )
