@@ -98,7 +98,7 @@ void UpdateEnemies()
 		} else {
 			//spawn new enemy 
 			//TODO: consider some tipe of timming?
-			if( player.speed>float.epsilon && uniform(1,50)<5 )
+			if( player.speed>float.epsilon && uniform(1,150)<5 )
 			{
 				if( player.speed>=ENEMY_SPEED )
 				{

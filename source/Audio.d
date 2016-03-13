@@ -29,13 +29,19 @@ module Audio;
 import std.stdio, std.random, core.stdc.stdlib, std.math;
 import derelict.sdl2.sdl;
 import Globals, Player;
+import TIASound;
 
-enum SOUND_FREQ =  31440;
+enum SOUND_FREQ =  31400;
 enum SOUND_SAMPLES = 1024;
 enum PI = 3.14159f;
 enum PIH = 1.57079f;
 enum PIQ = 0.78539f;
 enum PI2 = 6.28318f;
+
+__gshared int SOUND_PASSING_CAR = 0;
+__gshared bool SOUND_SNOW = false;
+__gshared int SOUND_ENGINE = 0;
+__gshared bool SOUND_ROAD_COLLISION = false;
 
 //InitAudio
 bool InitAudio()
@@ -44,15 +50,28 @@ bool InitAudio()
 
 	SDL_AudioSpec spec, obtained;
 	spec.freq = SOUND_FREQ;
-	spec.format = AUDIO_S8;
-   	spec.channels = 0;
+	spec.format = AUDIO_S16;
+   	spec.channels = 1;
    	spec.samples = SOUND_SAMPLES;
    	spec.callback = &FillAudio;
 	spec.userdata = null;
 	spec.silence = 0;
 	spec.size = 0;
 
-	if( SDL_OpenAudio( &spec, null )<0 ) return false;
+	if( SDL_OpenAudio( &spec, &obtained )<0 ) return false;
+
+	debug
+	{
+		writeln( "Audio:" );
+		writeln( "\tfrequency: ", obtained.freq );
+		writeln( "\tchannels: ", obtained.channels );
+		writeln( "\tsamples: ", obtained.samples );
+		writeln( "\tformat: ", obtained.format );
+	}
+
+	TIASound_Reset( obtained.freq );
+	TIASound_SetVolume( 30 );
+
 	SDL_PauseAudio( 0 );
 
 	return true;
@@ -61,6 +80,41 @@ bool InitAudio()
 //Fillaudio
 extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 {
+
+	if( !SOUND_ROAD_COLLISION )
+	{
+		if( SOUND_ENGINE>0 )
+		{
+			TIASound_SetRegister( TIARegister.AUDF0, cast(ubyte)(SOUND_ENGINE) );
+			TIASound_SetRegister( TIARegister.AUDC0, 0x03 );
+			TIASound_SetRegister( TIARegister.AUDV0, 0x0E );
+		} else {
+			TIASound_SetRegister( TIARegister.AUDV0, 0x00 );
+		}
+	} else {
+		TIASound_SetRegister( TIARegister.AUDF0, 0x11 );
+		TIASound_SetRegister( TIARegister.AUDC0, 0x03 );
+		TIASound_SetRegister( TIARegister.AUDV0, 0x0F );
+	}
+
+	if( SOUND_SNOW )
+	{
+		//TODO:
+	}
+
+	if( SOUND_PASSING_CAR>0 )
+	{
+		TIASound_SetRegister( TIARegister.AUDF1, 0x0C );
+		TIASound_SetRegister( TIARegister.AUDC1, 0x03 );
+		TIASound_SetRegister( TIARegister.AUDV1, cast(ubyte)(0x03+SOUND_PASSING_CAR) );
+		SOUND_PASSING_CAR--;
+	} else {
+		TIASound_SetRegister( TIARegister.AUDV1, 0 );
+	}
+
+	TIASound_Process( cast(short*)stream, len>>1 );
+
+	/*
 	byte *ptr = cast(byte*)stream;
 
 	static float i = 0;
@@ -78,7 +132,7 @@ extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 	Waveform wave = { 10, [4,0,4,1,4,2,4,3,4,4] };
 	Waveform wave2 = { 10, [1,1,2,2,3,3,4,4,0,0] };
 	Waveform wave3 = { 13, [4,2,4,1,4,4,4,1,4,3,0,0,1] };
-	Waveform wave4 = { 8, [0,0,0,0,4,4,4,4] };
+	Waveform wave4 = { 40, [0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] };
 
 	Waveform cur_wave = wave;
 
@@ -96,7 +150,8 @@ extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 			index++;
 			if( index>=cur_wave.len ) index = 0;
 		}
-	} 
+	} */
+
 }
 
 //EOF

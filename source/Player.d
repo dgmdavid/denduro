@@ -10,7 +10,7 @@
 	No warranty is offered or implied; use this code at your own risk.
 */
 module Player;
-import Globals, Sprites;
+import Globals, Sprites, Audio;
 
 //TODO: should this be moved to globals?
 enum PLAYER_MAX_SPEED = 5.0f;
@@ -49,7 +49,12 @@ void UpdatePlayer()
 			if( player.turn_right ) Increase( player.position, velocity, PLAYER_MAX_POSITION );
 		}
 		//TODO: adjust at what rate the speed increases and the maximum value
-		if( player.accelerate   ) Increase( player.speed, 0.015f, PLAYER_MAX_SPEED );
+		//TODO: I think the speed must be accelerated at different rates, up until 2 speed up more quickly, up to 4 a slower etc... (it will make the engine sound closer to the original)
+		if( player.accelerate   ) 
+		{
+			     if( player.speed<2.4f  ) Increase( player.speed, 0.015f, PLAYER_MAX_SPEED );
+			else if( player.speed>=2.4f ) Increase( player.speed, 0.0075f, PLAYER_MAX_SPEED );
+		}
 		if( player.deaccelerate ) Decrease( player.speed, 0.04f, 0.1f );
 	} else
 
@@ -68,6 +73,19 @@ void UpdatePlayer()
 		if( player.collision==EPCol.RIGHT_CAR ) player.position -= 0.4f;
 		Decrease( player.pos, 0.3f, 0 );
 		Decrease( player.speed, 0.02f, 0.85f );
+	}
+
+	if( player.collision==EPCol.NONE )
+	{
+		if( player.speed<=float.epsilon )
+			SOUND_ENGINE = 0;
+		else {
+			//simulate multiple "gears"
+			SOUND_ENGINE = cast(int)(27-((player.speed%2.0f)*6));
+		}
+		SOUND_ROAD_COLLISION = false;
+	} else {
+		SOUND_ROAD_COLLISION = true;
 	}
 }
 

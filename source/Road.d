@@ -11,7 +11,7 @@
 */
 module Road;
 import std.stdio, std.random, std.math;
-import Globals, Sprites, Player, Enemies;
+import Globals, Sprites, Player, Enemies, Audio;
 
 //TODO: should all this be moved to globals?
 enum ROAD_START_LINE = 73;
@@ -158,6 +158,9 @@ void RenderRoad()
 		if( spr2_num==2 ) spr2_num = 0;
 	}
 
+
+	int enemy_line_distance = 999;
+
 	//TODO: obstacle cars - render them elsewhere?
 	for( int i=0; i<MAX_ENEMIES; ++i )
 	{
@@ -167,7 +170,10 @@ void RenderRoad()
 		//TODO: do some type of mapping from "screen lines" to "car distance" to make the approaching of cars more "convincing"?
 		int enemy_line = cast(int)enemies_[i].pos-2;
 		float enemy_dist = (enemy_line*step)/1.65f;
-		float enemy_center = CalcRoadCurve(enemy_line+5);	//TODO: why dos this have to be +5?
+		float enemy_center = CalcRoadCurve(enemy_line+5);
+
+		//check if the enemy is near the player for sound effect
+		if( enemy_line+8>=player_line && enemy_line<=player_line+8 ) enemy_line_distance = enemy_line-player_line;
 
 		int enemy_size = 0;
 		//TODO: find a way to calculate this?
@@ -175,9 +181,9 @@ void RenderRoad()
 		if( enemy_line>=10 ) enemy_size = 1; //12
 		if( enemy_line>=18 ) enemy_size = 2; //20
 		if( enemy_line>=28 ) enemy_size = 3; //30
-		if( enemy_line>=41 ) enemy_size = 4; //42
-		if( enemy_line>=59 ) enemy_size = 5; //61
-		if( enemy_line>=83 ) enemy_size = 6; //85
+		if( enemy_line>=40 ) enemy_size = 4; //42
+		if( enemy_line>=58 ) enemy_size = 5; //61
+		if( enemy_line>=82 ) enemy_size = 6; //85
 
 		if( enemies_[i].side==0 ) enemy_center -= enemy_dist;
 		else if( enemies_[i].side==2 ) enemy_center += enemy_dist;
@@ -209,6 +215,9 @@ void RenderRoad()
 	}
 
 	g_screen[ (ROAD_END_LINE*VSCREEN_WIDTH)..((ROAD_END_LINE+10)*VSCREEN_WIDTH) ] = 0;
+
+	//sound effect of the passing cars
+	if( enemy_line_distance!=999 ) SOUND_PASSING_CAR = 4;
 
 	//TODO: move to another place
 	//render the score
