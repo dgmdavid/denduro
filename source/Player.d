@@ -45,14 +45,16 @@ void UpdatePlayer()
 	{
 		if( player.speed>float.epsilon )
 		{
+			player_sound = PLAYER_SOUNDS.ENGINE;
 			float velocity = (player.speed*1.25f)/PLAYER_MAX_SPEED;
 			if( player.turn_left  ) Decrease( player.position, velocity, -PLAYER_MAX_POSITION );
 			if( player.turn_right ) Increase( player.position, velocity, PLAYER_MAX_POSITION );
-		}
+		} else player_sound = PLAYER_SOUNDS.NONE;
 		//TODO: adjust at what rate the speed increases and the maximum value
 		//TODO: I think the speed must be accelerated at different rates, up until 2 speed up more quickly, up to 4 a slower etc... (it will make the engine sound closer to the original)
 		if( player.accelerate ) 
 		{
+			player_sound = PLAYER_SOUNDS.ACCELERATING;
 			if( player.speed<PLAYER_MIN_SPEED ) player.speed = PLAYER_MIN_SPEED;
 			     if( player.speed<2.4f  ) Increase( player.speed, 0.010f, PLAYER_MAX_SPEED );
 			else if( player.speed>=2.4f ) Increase( player.speed, 0.006f, PLAYER_MAX_SPEED );
@@ -80,14 +82,19 @@ void UpdatePlayer()
 	if( player.collision==EPCol.NONE )
 	{
 		if( player.speed<=float.epsilon )
-			SOUND_ENGINE = 0;
-		else {
+		{
+			SOUND_ENGINE_FREQUENCY = 0;
+		} else {
 			//simulate multiple "gears"
-			SOUND_ENGINE = cast(int)(27-((player.speed%2.0f)*6));
+			SOUND_ENGINE_FREQUENCY = cast(int)(27-((player.speed%2.0f)*6));
 		}
-		SOUND_ROAD_COLLISION = false;
 	} else {
-		SOUND_ROAD_COLLISION = true;
+		if( player.collision==EPCol.LEFT_CAR || player.collision==EPCol.RIGHT_CAR )
+		{
+			player_sound = PLAYER_SOUNDS.CAR_CRASH;
+		} else {
+			player_sound = PLAYER_SOUNDS.ROAD_CRASH;
+		}
 	}
 }
 

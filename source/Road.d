@@ -46,6 +46,13 @@ void RenderRoad()
 	//TODO: do I really need to clear the screen?
 	//g_screen[] = 0;
 
+	//TODO: these values will variate 
+	uint SKY_COLOR = 0xFF181AA7;
+	uint ROAD_COLOR = 0xFF004400;
+	uint ROAD_TRACE_COLOR = 0xFF4A4A4A;
+	uint PLAYER_COLOR = 0xFFC0C0C0;
+	uint MOUNTAIN_COLOR = 0xFF708228;
+
 	road.center = SCREEN_CENTER-cast(int)(player.position/1.0f);
 
 	//"run" the dirturb through the road
@@ -59,18 +66,38 @@ void RenderRoad()
 	//do not apply noise to the road in case the player is not moving
 	if( player.speed<=float.epsilon ) road.noise = 0;
 
+	//fill the sky
+	for( int r=0; r<ROAD_START_LINE; ++r )
+		g_screen[(VSCREEN_WIDTH*r)+VSCREEN_X_PAD..(VSCREEN_WIDTH*r)+VSCREEN_X_PAD+SCREEN_WIDTH] = SKY_COLOR;
+
+	//blit the mountains
+	static float mountain_offset = 29.0f;
+	if( road.curve!=0 ) 
+	{
+		mountain_offset += (road.curve/ROAD_MAX_CURVE)*(player.speed/2.0f);
+		if( mountain_offset>=209 ) mountain_offset = 0.0f;
+		if( mountain_offset<-137 ) mountain_offset = 72.0f;
+	}
+	//TODO: this is ugly :( -- also the offsets are wrong
+	BlitSprite( mountain_sprites[0], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset-209, ROAD_START_LINE-mountain_sprites[0].height, MOUNTAIN_COLOR );
+	BlitSprite( mountain_sprites[1], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset-137, ROAD_START_LINE-mountain_sprites[1].height, MOUNTAIN_COLOR );
+	BlitSprite( mountain_sprites[0], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset,     ROAD_START_LINE-mountain_sprites[0].height, MOUNTAIN_COLOR );
+	BlitSprite( mountain_sprites[1], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset+72,  ROAD_START_LINE-mountain_sprites[1].height, MOUNTAIN_COLOR );
+	BlitSprite( mountain_sprites[0], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset+209, ROAD_START_LINE-mountain_sprites[0].height, MOUNTAIN_COLOR );
+	BlitSprite( mountain_sprites[1], cast(int)-player.position+VSCREEN_X_PAD+cast(int)mountain_offset+281, ROAD_START_LINE-mountain_sprites[1].height, MOUNTAIN_COLOR );
+
 	//trace the road
 	float dist = 0;
 	float step = (ROAD_WIDTH/2.0f)/ROAD_LENGTH;
 	for( int r=0; r<ROAD_LENGTH; ++r )
 	{	
 		//calculate the center of the road considering its curve
-		float center = /*road.noise+*/CalcRoadCurve(r);
+		float center = road.noise+CalcRoadCurve(r);
 
 		//fill the road's background
 		//TODO: color variation according to "season" and "time of day"
-		g_screen[VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD..(VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD+SCREEN_WIDTH)] = 255<<24 | 255<<16;
-	
+		g_screen[VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD..(VSCREEN_WIDTH*(r+ROAD_START_LINE)+VSCREEN_X_PAD+SCREEN_WIDTH)] = ROAD_COLOR;
+
 		//TODO: this needs more work
 		float save_dist = dist;
 		float diff = r-road.disturb;
@@ -82,8 +109,10 @@ void RenderRoad()
 		}
 
 		//plot the road's outline
-		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center-dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
-		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center+dist)] = 255<<24 | 255<<16 | 255<<8 | 255;
+		if( r>=40+cast(int)(road.noise*15) ) ROAD_TRACE_COLOR = 0xFF6F6F6F;
+		if( r>=54+cast(int)(road.noise*15) ) ROAD_TRACE_COLOR = 0xFFC0C0C0;
+		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center-dist)] = ROAD_TRACE_COLOR;
+		g_screen[cast(int)((VSCREEN_WIDTH*(r+ROAD_START_LINE))+center+dist)] = ROAD_TRACE_COLOR;
 
 		//save the road's boundaries at the player's line of collision
 		//you could calculate this outside of the loop, too, but let's do this for now (mainly because of the disturbance)
@@ -111,7 +140,7 @@ void RenderRoad()
 		}
 	}
 
-	BlitSprite( car_sprite[12+spr_num], player_center-8, player_line+ROAD_START_LINE, 0xFFFFFFFF );
+	BlitSprite( car_sprite[12+spr_num], player_center-8, player_line+ROAD_START_LINE, PLAYER_COLOR );
 
 	//apply "physics" to the player
 	//TODO: those values _still_ need adjustment, of course, to match the original game

@@ -105,6 +105,22 @@ void TIASound_Reset( int frequency )
 	myOutputFrequency = frequency;	
 }
 
+//TIASound_SetRegisters0
+void TIASound_SetRegisters0( ubyte f_value, ubyte c_value, ubyte v_value ) nothrow
+{
+	TIASound_SetRegister( TIARegister.AUDF0, f_value );
+	TIASound_SetRegister( TIARegister.AUDC0, c_value );
+	TIASound_SetRegister( TIARegister.AUDV0, v_value );
+}
+
+//TIASound_SetRegisters1
+void TIASound_SetRegisters1( ubyte f_value, ubyte c_value, ubyte v_value ) nothrow
+{
+	TIASound_SetRegister( TIARegister.AUDF1, f_value );
+	TIASound_SetRegister( TIARegister.AUDC1, c_value );
+	TIASound_SetRegister( TIARegister.AUDV1, v_value );
+}
+
 //TIASound_SetRegister
 void TIASound_SetRegister( ushort register, ubyte value ) nothrow
 {

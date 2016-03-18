@@ -9,3 +9,4 @@ __dummy.html
 *.sublime-workspace
 dub.userprefs
 output.raw
+output.txt

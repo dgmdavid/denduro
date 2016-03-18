@@ -36,17 +36,26 @@ import TIASound;
 
 enum SOUND_FREQ =  31400;
 enum SOUND_SAMPLES = 1024;
-enum PI = 3.14159f;
-enum PIH = 1.57079f;
-enum PIQ = 0.78539f;
-enum PI2 = 6.28318f;
+//enum PI = 3.14159f;
+//enum PIH = 1.57079f;
+//enum PIQ = 0.78539f;
+//enum PI2 = 6.28318f;
+
+enum PLAYER_SOUNDS
+{
+	NONE,
+	ENGINE,
+	ACCELERATING,
+	ROAD_CRASH,
+	CAR_CRASH
+}
 
 __gshared 
 {
+	PLAYER_SOUNDS player_sound = PLAYER_SOUNDS.NONE;
+	int SOUND_ENGINE_FREQUENCY = 0;
 	int SOUND_PASSING_CAR = 0;
 	bool SOUND_SNOW = false;
-	int SOUND_ENGINE = 0;
-	bool SOUND_ROAD_COLLISION = false;
 }
 
 //InitAudio
@@ -78,7 +87,7 @@ bool InitAudio()
 
 	//initialize TIASound
 	TIASound_Reset( obtained.freq );
-	TIASound_SetVolume( 30 );
+	TIASound_SetVolume( 40 );
 
 	SDL_PauseAudio( 0 );
 
@@ -88,47 +97,53 @@ bool InitAudio()
 //Fillaudio
 extern(C) nothrow void FillAudio( void *udata, Uint8 *stream, int len )
 {
-	if( !SOUND_ROAD_COLLISION )
+	enum CRASH_TIMER = 16;
+	static int timer = CRASH_TIMER;
+
+	static bool variate = true;
+	variate = !variate;
+
+	switch( player_sound )
 	{
-		if( SOUND_ENGINE>0 )
+		case PLAYER_SOUNDS.NONE:
 		{
-			TIASound_SetRegister( TIARegister.AUDF0, cast(ubyte)(SOUND_ENGINE) );
-			TIASound_SetRegister( TIARegister.AUDC0, 0x03 );
-			TIASound_SetRegister( TIARegister.AUDV0, 0x0E );
-		} else {
 			TIASound_SetRegister( TIARegister.AUDV0, 0x00 );
-		}
-	} else {
-		TIASound_SetRegister( TIARegister.AUDF0, 0x11 );
-		TIASound_SetRegister( TIARegister.AUDC0, 0x03 );
-		TIASound_SetRegister( TIARegister.AUDV0, 0x0F );
+		} break;
+
+		case PLAYER_SOUNDS.ROAD_CRASH:
+		{
+			TIASound_SetRegisters0( 0x10+(variate?1:0), 0x03, 0x0F );
+			timer = CRASH_TIMER;
+		} break;
+
+		case PLAYER_SOUNDS.CAR_CRASH:
+		{
+			if( timer>0 )
+			{
+				TIASound_SetRegisters0( 0x08+(variate?1:0), 0x08, 0x0F );
+				timer--;
+			} else {
+				TIASound_SetRegisters0( 0x00+(variate?1:0), 0x03, 0x03 );
+			}
+		} break;
+
+		default: 
+		{
+			TIASound_SetRegisters0( cast(ubyte)(SOUND_ENGINE_FREQUENCY), 0x03, 0x07+(player_sound==PLAYER_SOUNDS.ACCELERATING?8:0) );
+		} break;
 	}
 
-	if( SOUND_SNOW )
-	{
-		//TODO:
-	}
+	if( SOUND_SNOW ) TIASound_SetRegisters1( 0x0C, 0x08, 0x04 );
 
 	if( SOUND_PASSING_CAR>0 )
 	{
-		TIASound_SetRegister( TIARegister.AUDF1, 0x0C );
-		TIASound_SetRegister( TIARegister.AUDC1, 0x03 );
-		TIASound_SetRegister( TIARegister.AUDV1, cast(ubyte)(0x03+SOUND_PASSING_CAR) );
+		TIASound_SetRegisters1( 0x0C, 0x03, cast(ubyte)(0x03+SOUND_PASSING_CAR) );
 		SOUND_PASSING_CAR--;
 	} else {
-		TIASound_SetRegister( TIARegister.AUDV1, 0 );
+		if( !SOUND_SNOW ) TIASound_SetRegister( TIARegister.AUDV1, 0 );
 	}
 
 	TIASound_Process( cast(short*)stream, len/2 );
-
-	//TODO: testing
-	/*with( core.stdc.stdio )
-	{
-		FILE *fp;
-		fp = fopen( "output.raw", "wb+" );
-		fwrite( stream, 1, len, fp );
-		fclose( fp );
-	}*/
 
 	/*
 	byte *ptr = cast(byte*)stream;
