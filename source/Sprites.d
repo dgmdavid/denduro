@@ -61,24 +61,40 @@ void BlitSpriteScroll( ref Sprite sprite, int x, int y, uint color, byte scroll 
 //BlitSpriteNumbersScroll
 void BlitSpriteNumbersScroll( int x, int y, uint color, byte scroll, byte number )
 {
+	import std.math;
 	x += VSCREEN_X_PAD;
-	Sprite sprite = numbers[number];
-	int s_line = scroll;
-	for( int ey=0; ey<sprite.height; ey++ )
+	int s_line = abs( scroll );
+	if( scroll>=0 )
 	{
-		for( int ex=0; ex<sprite.width; ex++ )
+		Sprite sprite = numbers[number];
+		for( int ey=0; ey<sprite.height; ey++ )
 		{
-			if( sprite.data[s_line*sprite.width+ex]==1 ) g_screen[((ey+y)*VSCREEN_WIDTH)+(ex+x)] = color;
+			for( int ex=0; ex<sprite.width; ex++ )
+			{
+				if( sprite.data[s_line*sprite.width+ex]==1 ) g_screen[((ey+y)*VSCREEN_WIDTH)+(ex+x)] = color;
+			}
+			s_line++;
+			if( s_line>=sprite.height ) 
+			{
+				s_line = 0;
+				number++;
+				if( number>9 ) number = 0;
+				sprite = numbers[number];
+			}
 		}
-		s_line++;
-		if( s_line>=sprite.height ) 
-		{
-			s_line = 0;
-			number++;
-			if( number>9 ) number = 0;
-			sprite = numbers[number];
-		}
+	} else {
+		Sprite sprite = numbers[number];
+		for( int ey=0; ey<sprite.height-s_line; ey++ )
+			for( int ex=0; ex<sprite.width; ex++ )
+				if( sprite.data[(ey*sprite.width)+ex]==1 ) g_screen[((ey+y+s_line)*VSCREEN_WIDTH)+(ex+x)] = color;
+		number++;
+		if( number>9 ) number = 0;
+		sprite = numbers[number];
+		for( int ey=sprite.height-s_line; ey<sprite.height; ey++ )
+			for( int ex=0; ex<sprite.width; ex++ )
+				if( sprite.data[(ey*sprite.width)+ex]==1 ) g_screen[((ey+y-sprite.height+s_line)*VSCREEN_WIDTH)+(ex+x)] = color;
 	}
+
 }
 
 //BlitFullColorSpriteScroll

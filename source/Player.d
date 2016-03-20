@@ -41,6 +41,9 @@ enum EPCol
 //UpdatePlayer
 void UpdatePlayer()
 {
+	//increase player's odometer
+	player.kilometers += player.speed/(PLAYER_MAX_SPEED*12);
+
 	if( player.collision==EPCol.NONE )
 	{
 		if( player.speed>float.epsilon )

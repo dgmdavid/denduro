@@ -135,11 +135,11 @@ void RenderRoad()
 		if( spr_count>=(PLAYER_MAX_SPEED/2.0f)-(player.speed/3.0f) )
 		{
 			spr_count = 0;
-			spr_num++;
-			if( spr_num==2 ) spr_num = 0;
+			spr_num = (spr_num+1)%2;
 		}
 	}
 
+	//blit player sprite
 	BlitSprite( car_sprite[12+spr_num], player_center-8, player_line+ROAD_START_LINE, PLAYER_COLOR );
 
 	//apply "physics" to the player
@@ -172,12 +172,11 @@ void RenderRoad()
 
 	//TODO: ANOTHER temporary ugly stuff to "animate" the sprite :P
 	static int spr2_count = 0, spr2_num = 0;
-	spr2_count++;
+	spr2_count += 2;
 	if( spr2_count>=ENEMY_SPEED )
 	{
 		spr2_count = 0;
-		spr2_num++;
-		if( spr2_num==2 ) spr2_num = 0;
+		spr2_num = (spr2_num+1)%2;
 	}
 
 	int enemy_line_distance = -999;
@@ -244,24 +243,6 @@ void RenderRoad()
 
 	//sound effect of the passing cars
 	if( enemy_line_distance!=-999 ) SOUND_PASSING_CAR = 4;
-
-	//TODO: move to another place
-	//render the score
-	//48x182 - 111x211
-	for( int y=182; y<=211; y++ )
-		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+48..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+112 ] = 0xFF912640;
-	//56x185 - 95x193 / 96x185 - 103x193
-	for( int y=185; y<=193; y++ )
-	{
-		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+56..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+96 ] = 0xFFB78927;
-		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+96..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+104 ] = 0;
-	}
-	//56x200 - 63x208 / 72x200 - 103x208
-	for( int y=200; y<=208; y++ )
-	{
-		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+56..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+64 ] = 0xFFB78927;
-		g_screen[ (y*VSCREEN_WIDTH)+VSCREEN_X_PAD+72..(y*VSCREEN_WIDTH)+VSCREEN_X_PAD+104 ] = 0xFFB78927;
-	}
 }
 
 //EOF
