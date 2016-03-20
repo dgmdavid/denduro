@@ -6,7 +6,7 @@ I'm using this opportunity to learn more about the D language.
 
 ![Screenshot as of now.](https://raw.githubusercontent.com/dgmdavid/denduro/master/ref_images/denduro_screenshot.png)
 
-# How to Build
+# How to Build (on Windows and Linux)
 
 ## D compiler
 You will need to download Digital Mars D Compiler from [here](http://dlang.org/download.html#dmd).
