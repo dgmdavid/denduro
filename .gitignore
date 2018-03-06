@@ -10,3 +10,5 @@ __dummy.html
 dub.userprefs
 output.raw
 output.txt
+*.exe
+Win32/

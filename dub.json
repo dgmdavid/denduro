@@ -3,10 +3,11 @@
 	"description": "An Enduro clone made with D.",
 	"authors": ["David G. Maziero (dgm)"],
 	"license": "public domain",
-	"mainSourceFile": "source/denduro.d",
 	"targetType": "executable",
 	"dependencies":
 	{
 		"derelict-sdl2": "~>2.0.0"
-	}
+	},
+	"dflags": [ "-vgc" ],
+	"buildOptions": [ "debugMode", "debugInfo" ]
 }

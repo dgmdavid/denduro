@@ -46,6 +46,7 @@ void main()
 	debug 
 	{
 		SDL_Texture *font_tex = IMG_LoadTexture( g_renderer, "data/dgm_font.png" );
+		if( !font_tex ) writeln( "Could not load \"dgm_font.png\"." );
 		FontBMP font = { texture:font_tex, spacing_x:8, spacing_y:14, width:16, height:16, horizontal_count:16 };
 	}
 
