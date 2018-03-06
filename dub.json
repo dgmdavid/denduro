@@ -8,6 +8,4 @@
 	{
 		"derelict-sdl2": "~>2.0.0"
 	},
-	"dflags": [ "-vgc" ],
-	"buildOptions": [ "debugMode", "debugInfo" ]
 }
